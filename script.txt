@@ -1,0 +1,13 @@
+symdef BotID Hexbot3C61054ADD98
+MoveToHomePosition
+//MoveRelHomeLocal 1, 0, 0, 0,
+//MoveRelHomeLocal 2, 0, 0, 0,
+//MoveRelHomeLocal 3, 0, 0, 0,
+//MoveRelHomeLocal 4, 0, 0, 0,
+//MoveRelHomeLocal 5, 0, 0, 0,
+//MoveRelHomeLocal 6, 0, 0, 0,
+//Doit 1000
+MoveRelHomeLocal 1, 0, 2, 0,
+Doit 1000
+MoveRelHomeLocal 1, 0, 0, 0,
+Doit 1000

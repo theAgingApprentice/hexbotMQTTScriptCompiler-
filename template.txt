@@ -1,0 +1,18 @@
+copy var Thread = Java.type("java.lang.Thread");
+copy function execute() {
+replace <myBot>  
+copy send("NEW_FLOW")
+insert <templateFile>
+copy send("DO_FLOW,$ToeAction,$msecPerFrame")
+copy action.setExitCode(0);
+copy action.setResultText("done.");
+copy out("Parameter parameter set up complete");
+copy return action;
+copy }
+copy function send(cmd){
+copy mqttManager.publish(myTWIPe, cmd);
+copy Thread.sleep(200); 
+copy }
+copy function out(message){
+copy output.print(message);
+copy }
