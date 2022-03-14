@@ -13,9 +13,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/andrewmitchell/Documents/VisualStudioCode/theAgingApprentice/dotNet/projects/hexbotMQTTScriptCompiler-/helloWorld.csproj",
-      "projectName": "helloWorld",
-      "projectPath": "/Users/andrewmitchell/Documents/VisualStudioCode/theAgingApprentice/dotNet/projects/hexbotMQTTScriptCompiler-/helloWorld.csproj",
+      "projectUniqueName": "/Users/andrewmitchell/Documents/VisualStudioCode/theAgingApprentice/dotNet/projects/hexbotMQTTScriptCompiler-/HexbotCompiler.csproj",
+      "projectName": "HexbotCompiler",
+      "projectPath": "/Users/andrewmitchell/Documents/VisualStudioCode/theAgingApprentice/dotNet/projects/hexbotMQTTScriptCompiler-/HexbotCompiler.csproj",
       "packagesPath": "/Users/andrewmitchell/.nuget/packages/",
       "outputPath": "/Users/andrewmitchell/Documents/VisualStudioCode/theAgingApprentice/dotNet/projects/hexbotMQTTScriptCompiler-/obj/",
       "projectStyle": "PackageReference",
