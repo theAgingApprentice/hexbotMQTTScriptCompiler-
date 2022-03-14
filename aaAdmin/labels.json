@@ -1,0 +1,153 @@
+[
+   {
+     "name": "breaking",
+     "color": "d73a4a",
+     "description": "Introduces a breaking change.",
+     "aliases": [
+       "breaking change",
+       "breaking-change",
+       "Type: Breaking Change",
+       "type: breaking"
+     ]
+   },
+   {
+     "name": "help",
+     "color": "0e8a16",
+     "description": "Requires training or information exchange.",
+     "aliases": [
+       "help wanted",
+       "Patch Welcome",
+       "status: help wanted",
+       "Status: PR Welcome",
+       "Status: Ready for PR"
+     ]
+   },
+   {
+     "name": "priority: now",
+     "color": "d73a4a",
+     "description": "Fix today.",      
+     "aliases": [
+       "priority: critical",
+       "Priority: Critical"
+     ]
+   },
+   {
+     "name": "priority: soon",
+     "color": "ffb8c6",
+     "description": "Fix in the next few days.",
+     "aliases": [
+       "priority: medium",
+       "Priority: Medium"
+     ]
+   },
+   {
+     "name": "priority: eventually",
+     "color": "fbca04",
+     "description": "No rush to fix this.",
+     "aliases": [
+       "priority: high",
+       "Priority: High"
+     ]
+   },
+   {
+     "name": "semantic-release",
+     "description": "Create release after main merge.",
+     "color": "e6e6e6"
+   },
+   {
+     "name": "state: pending",
+     "color": "fbca04",
+     "description": "Taking action, but need a few things to happen first. A feature that needs dependencies merged, or a bug that needs further data.",
+     "aliases": [
+       "in progress",
+       "on hold",
+       "pending",
+       "Status: In Progress",
+       "Status: Review Needed",
+       "watchlist"
+     ]
+   },
+   {
+     "name": "state: inactive",
+     "color": "e6e6e6",
+     "description": "No action needed or possible. The issue is either fixed, addressed better by other issues, or just out of product scope.",
+     "aliases": [
+       "duplicate", 
+       "invalid",
+       "stale",
+       "Status: Abandoned",
+       "status: duplicate",
+       "status: wontfix",
+       "wont-fix",
+       "wontfix"
+     ]
+   },
+   {
+     "name": "type: bug",
+     "color": "d73a4a",
+     "description": "Something isn't working.",
+     "aliases": [
+       "bug",
+       "Type: Bug"
+     ]
+   },
+   {
+     "name": "type: chore",
+     "color": "fef2c0",
+     "description": "Converting measurements, reorganizing folder structure, and other necessary (but less impactful) tasks.",
+     "aliases": [
+       "chore",
+       "dependabot",
+       "dependencies",
+       "dependency",
+       "greenkeeper",
+       "legal",
+       "maintenance",
+       "Type: Maintenance",
+       "type: maintenance"
+     ]
+   },
+   {
+     "name": "type: docs",
+     "color": "fef2c0",
+     "description": "Related to documentation and information.",
+     "aliases": [
+       "doc",
+       "docs",
+       "document",
+       "documentation",
+       "documents",
+       "Type: Documentation",
+       "type: documentation"
+     ]
+   },
+   {
+     "name": "type: fix",
+     "color": "91ca55",
+     "description": "Iterations on existing features or infrastructure.",
+     "aliases": [
+       "fix",
+       "improvement",
+       "optimization",
+       "refactor",
+       "Type: Fix",
+       "Type: Refactoring"
+     ]
+   },
+   {
+      "name": "type: enhancement",
+      "color": "91ca55",
+      "description": "Tweak the way an exiting feature behaves.",
+      "aliases": [
+      ]
+    },
+   {
+     "name": "type: testing",
+     "color": "fbca04",
+     "description": "Related to testing.",
+     "aliases": [
+       "test",
+       "testing"
+     ]
+   }
+ ]

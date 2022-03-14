@@ -1,0 +1,31 @@
+{
+   // This is the build & compile file for Windows users
+   // See https://go.microsoft.com/fwlink/?LinkId=733558
+   // for the documentation about the tasks.json format
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "type": "shell",
+         "label": "cl.exe build active file",
+         "command": "cl.exe",
+         "args": [
+            "/Zi",
+            "/EHsc",
+            "/Fe:",
+            "${workspaceFolder}\\bin\\Windows\\${fileBasenameNoExtension}.exe",
+            "/Fd:",
+            "${workspaceFolder}\\bin\\Windows\\vc140.pdb",
+            "/Fo:",
+            "${workspaceFolder}\\bin\\Windows\\${fileBasenameNoExtension}.obj",
+            "${file}"
+         ],
+         "problemMatcher": [
+            "$msCompile"
+         ],
+         "group": {
+            "kind": "build",
+            "isDefault": true
+         }
+      }
+   ]
+}

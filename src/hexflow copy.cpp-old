@@ -1,0 +1,329 @@
+/** @file hexflow.cpp
+ * A command line utility for making Hexbot flows.
+ * Hexflow is a command line utitlity that outputs flows that can be used to 
+ * issue leg movement commands to the  hexbot robot via MQTT messages.   
+ * 
+ * # Getting started
+ * To get your C++ envionment up and running in Visual Studio Code please
+ * check out the link for 
+ * [MacOsx](https://code.visualstudio.com/docs/cpp/config-clang-mac)]or this 
+ * link for [Windows](https://code.visualstudio.com/docs/cpp/config-mingw).
+ * 
+ * # Building
+ * To build this code open the project in Visual Studio Code (see readme file
+ * for this project regarding speccial Windows considerations runing VSC) and 
+ * press the hot key combination to trigger a build. For OSX users this is 
+ * SHIFT + COMMAND + B, for Windows users this is SHIFT + CONTROL + B. 
+ * 
+ * # Running the program
+ * To run this program go into a terminal shell and type ./hexflow
+ * 
+ * # Notes
+ * The include of the hexflow.h file shows up as an error by the linter and it
+ * underlines the line as if it is an error. The same goes for the include 
+ * iostream.h line in hexflow.h. Despite this the code compiles cleanly and 
+ * runs just fine. To avoid confusion about false bugs being underlined the 
+ * option to underline include files that are not found has been disabled.
+ ******************************************************************************/
+#include "hexflow.h"
+
+using namespace std; // Scope identifiers like functions and variables etc. 
+
+/**
+ * @brief Display the application welcome message.
+ * @details argv[] is an array of character arrays. The first charater array 
+ * row argv[0] contains the command that was used to execute this application. 
+ * The execute command always has the 2 character prefix "./" and this is 
+ * included in the character array argv[0]. We will strip that ugly prefix from 
+ * the name in order to make the welcome message cleaner.
+ * @param argv array of char arrays containing the name of the application as 
+ * well as any other command line parameters.
+ * @return null.
+ ******************************************************************************/
+void displayWelcomeMessage(char** argv)
+{
+   std::string tmp = argv[0]; // Convert from char array to string.
+   int prefixLen = 2; // Length of prefix "./" is 2 characters.
+   std::string appName = tmp.substr(prefixLen,tmp.size() - prefixLen);
+   printf("<displayWelcomeMessage> Welcome to %s\n", appName.c_str());
+   printf("<displayWelcomeMessage> ------------------\n");
+   printf("<displayWelcomeMessage> This command line utility generates movement flows for the hexbot robot.\n");
+} // displayWelcomeMessage()
+
+/**
+ * @brief Display the command line arguments passed into the application.
+ * @param argc Number of argument passed.
+ * @param argv array of char arrays containing the name of the application as 
+ * well as any other command line parameters.
+ * @return null.
+ ******************************************************************************/
+void displayArgs(int argc, char** argv)
+{
+   int argCount = argc - 1; // Ignore first argument. That is the app name.
+   if(argCount < 1)
+   {
+      printf("<displayArgs> No command line arguments were provided.\n");
+   } // if
+   else
+   {
+      printf("<displayArgs> Command line argument count is %d.\n", argc);
+      for(int i = 1; i < argc; ++i)
+      {
+         printf("<displayArgs> ... %d) = %s\n", i, argv[i]);
+      } // for
+   } // else
+} // displayArgs()
+
+/**
+ * @brief Display the shell environment variables available to this application.
+ * @param env_var_ptr pointer to array of environment variables.
+ * @return null.
+ ******************************************************************************/
+void displayEnvVars(char **env_var_ptr)
+{
+   printf("<displayEnvVars> Available environment variables:\n");
+   int i = 0;
+   while(*env_var_ptr != NULL) 
+   {
+      i++;
+      printf("<displayEnvVars> ... %d) %s\n",i, *(env_var_ptr++));
+   } // while
+} // displayEnvVars()
+
+/**
+ * @brief Send a test message to the MQTT broker.
+ * @param null.
+ * @return null.
+ ******************************************************************************/
+void sendMqttMessage()
+{
+   printf("<sendMqttMessage> This feature is not yet implemented.\n");
+} // sendMqttMessage()
+
+/**
+ * @brief Editor for workflows.
+ * @param null.
+ * @return null.
+ ******************************************************************************/
+void workflowEditor()
+{
+   printf("<workflowEditor> This feature is not yet implemented.\n");
+} // workflowEditor()
+
+/**
+ * @brief Append user input to file.
+ * @param null.
+ * @return null.
+ ******************************************************************************/
+void appendText()
+{
+   const int maxUserInputSize = 80; // Max num characters in one line of file.
+   char appendInput[maxUserInputSize]; // Hold user input.
+   char fileName[maxFileNameSize] = "test.txt";
+   printf("<appendText> Please enter text and press ENTER: ");
+   cin.clear(); // Clears the error flag on cin.
+   cin.ignore(maxFileNameSize, '\n'); // Ignore all content of cin up to first '\n' character.  
+   cin.getline(appendInput, maxUserInputSize);    
+   printf("<appendText> Appending %s to file %s.\n", appendInput, fileName);
+   ofstream a_file(fileName, ios::app); // Opens file for appending data.
+   a_file << appendInput << '\n'; // Appends data to file. Add new line to end.
+   a_file.close(); // Close the file stream explicitly.
+   return;
+} // appendText()
+
+/**
+ * @brief Display content of file to terminal.
+ * @param null.
+ * @return null.
+ ******************************************************************************/
+void displayFile()
+{
+   char fileName[maxFileNameSize] = "test.txt";
+   const int maxFileLineSize = 80; // Max num characters in one line of file.
+   char lineFromFile[maxFileLineSize]; // Hold input from file.  
+   int lineCount = 0; // Enumerate lines of file.
+   fstream myFile; // Reference to file input.
+   printf("<displayFile> Content of file %s:\n", fileName);
+   myFile.open(fileName, ios::in); // Open file for reading.
+   if(myFile.is_open()) //Check whether the file is open.
+   {   
+      while(myFile.getline(lineFromFile, maxFileLineSize))
+      {
+         lineCount ++;
+         printf("<displayFile> %d) %s.\n", lineCount, lineFromFile);         
+      } // while    
+      myFile.close(); // Close the file object.
+   } // if
+   else // Cannot open file.
+   {
+      printf("<displayFile> Could not open file.\n");
+   } // else
+   return;
+} // displayFile()
+
+/**
+ * @brief Display and handle user input for the application's main menu.
+ * @param env_var_ptr pointer to array of environment variables.
+ * @return null.
+ ******************************************************************************/
+void mainMenu(int argc, char** argv, char **env_var_ptr)
+{
+   char userInput; // Hold user input.
+   printf("<mainMenu> ============ Main Menu ============\n");
+   printf("<mainMenu> = 1. Workflow editor.             =\n");
+   printf("<mainMenu> = 2. Issue workflow via MQTT.     =\n");
+   printf("<mainMenu> = 3. System menu.                 =\n");
+   printf("<mainMenu> = 4. File menu.                   =\n");
+   printf("<mainMenu> = x. Exit application.            =\n");
+   printf("<mainMenu> ===================================\n");
+   printf("<mainMenu> Please make a selection and press ENTER: ");
+   cin >> userInput; // Get user input.
+   if(userInput == '1')
+   {
+      printf("<mainMenu> You have selected 1 (Workflow editor).\n");
+      workflowEditor();
+      return;
+   } // if
+   else if(userInput == '2')
+   {
+      printf("<mainMenu> You have selected 2 (Send MQTT message).\n");
+      sendMqttMessage();
+      return;
+   } // else if
+   else if(userInput == '3')
+   {
+      printf("<mainMenu> You have selected 3 (System Menu).\n");
+      currMenu = systemMenuActive;
+      return;
+   } // else if
+   else if(userInput == '4')
+   {
+      printf("<mainMenu> You have selected 4 (File Menu).\n");
+      currMenu = fileMenuActive;
+      return;
+   } // else if
+   else if(userInput == 'x' || userInput == 'X')
+   {
+      printf("<mainMenu> You have selected EXIT. Thank-you for using our utility. Goodbye.\n");
+      appExitCode =  ecNO_ERR;
+      appActive = false;
+      return;
+   } // else if 
+   else
+   {
+      printf("<mainMenu> You have made an invalid selection. Please try again.\n");
+      return;
+   } // else
+} // mainMenu()
+
+/**
+ * @brief Display and handle user input for the application's system menu.
+ * @param env_var_ptr pointer to array of environment variables.
+ * @return null.
+ ******************************************************************************/
+void systemMenu(int argc, char** argv, char **env_var_ptr)
+{
+   char userInput; // Hold user input.
+   printf("<systemMenu> =========== System Menu ===========\n");
+   printf("<systemMenu> = 1. List environment variables.  =\n");
+   printf("<systemMenu> = 2. List command line arguments. =\n");
+   printf("<systemMenu> = m. Back to main menu.           =\n");
+   printf("<systemMenu> ===================================\n");
+   printf("<systemMenu> Please make a selection and press ENTER: ");
+   cin >> userInput; // Get user input.
+   if(userInput == '1')
+   {
+      printf("<systemMenu> You have selected 1 (list environment variables).\n");
+      displayEnvVars(env_var_ptr);
+      return;
+   } // if
+   else if(userInput == '2')
+   {
+      printf("<systemMenu> You have selected 2 (list command line arguments).\n");
+      displayArgs(argc, argv);
+      return;
+   } // else if
+   else if(userInput == 'm' || userInput == 'M')
+   {
+      printf("<systemMenu> You have selected to return to the main menu.\n");
+      currMenu = mainMenuActive;
+      return;
+   } // else if 
+   else
+   {
+      printf("<systemMenu> You have made an invalid selection. Please try again.\n");
+      return;
+   } // else
+} // systemMenu()
+
+/**
+ * @brief Display and handle user input for the file I/O menu.
+ * @param null.
+ * @return null.
+ ******************************************************************************/
+void fileMenu()
+{
+   char userInput; // Hold user input for menu selection.
+   printf("<fileMenu> ============ File Menu ============\n");
+   printf("<fileMenu> = 1. Append text to file.         =\n");
+   printf("<fileMenu> = 2. Read file.                   =\n");
+   printf("<fileMenu> = m. Back to main menu.           =\n");
+   printf("<fileMenu> ===================================\n");
+   printf("<fileMenu> Please make a selection and press ENTER: ");
+   cin >> userInput; // Get user input.
+   if(userInput == '1')
+   {
+      printf("<fileMenu> You have selected 1 (append text to file).\n");
+      appendText();
+      return;
+   } // if
+   else if(userInput == '2')
+   {
+      printf("<fileMenu> You have selected 2 (read file).\n");
+      displayFile();
+      return;
+   } // else if
+   else if(userInput == 'm' || userInput == 'M')
+   {
+      printf("<fileMenu> You have selected to return to the main menu.\n");
+      currMenu = mainMenuActive;
+      return;
+   } // else if 
+   else
+   {
+      printf("<fileMenu> You have made an invalid selection. Please try again.\n");
+      return;
+   } // else
+} // fileMenu()
+
+/**
+ * @brief Main function where execution begins. 
+ * @param argc Count of all command line elements including the program name.
+ * @param argv Array of character strings containing each command line argument.
+ * @param env_var_ptr Array of characters containing all ebvironment variables.
+ * @return appExitCode which contains the app exit code (0 = OK, non 0 = error).
+ ******************************************************************************/
+int main(int argc, char** argv, char **env_var_ptr)
+{
+   displayWelcomeMessage(argv);
+   while(appActive == true)
+   {
+      switch(currMenu) 
+      {
+         case mainMenuActive:
+            mainMenu(argc, argv, env_var_ptr);
+            break; 
+         case systemMenuActive:
+            systemMenu(argc, argv, env_var_ptr);
+            break;  
+         case fileMenuActive:
+            fileMenu();
+            break; 
+         default : //Optional
+            appExitCode = ecMENU_UNKNOWN;
+            appActive = false;
+            break;
+      } // switch
+   } // while
+   return appExitCode;
+} // main()
