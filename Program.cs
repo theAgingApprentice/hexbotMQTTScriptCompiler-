@@ -20,15 +20,17 @@ namespace HexbotCompiler
    /// </summary>
    class templateFile
    {
-      public string srcFileName = "template.txt";
       private string[] srcLines = {""}; 
+      private string[] outLines = {""};   
+      public string srcFileName = "template.txt";
+      private string robotName = "";
       /// <summary>
       /// Puts each line of the template file into an element of a string array.
       /// <summary>
       /// <param name="null">Does not return any values.</param>
-      /// <returns>A string array</returns>
+      /// <returns>null</returns>
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
-      public string[] getSrcContent()
+      public void getSrcContent()
       {
          if (File.Exists(srcFileName)) 
          {
@@ -45,8 +47,65 @@ namespace HexbotCompiler
          {
             Console.WriteLine($"Template file {srcFileName} does not exists.");
          } // else
-         return srcLines;   
       } // getSrcContent()
+
+      /// <summary>
+      /// Transform source file lines to output lines.
+      /// <summary>
+      /// <param name="null">Does not return any values.</param>
+      /// <returns>null</returns>
+      public void transformSrc()
+      {
+         System.Console.WriteLine($"Transforming template source file to output strings.");
+         bool invalidInput = true;
+         while(invalidInput)
+         {
+            Console.WriteLine("Please enter the robot name:");
+            var userInput = Console.ReadLine();
+            if(userInput != "")
+            {
+               robotName = userInput?.ToString() ?? ""; // Convert input to string (no null).
+               invalidInput = false;
+            } // if
+         } // while
+         foreach(string line in srcLines)
+         {
+            var parse = line.Split (' ', 2);
+            var cmd = parse[0].Trim();  
+            var text = parse[1].Trim();     
+            if(cmd == "copy")
+            {
+               Console.WriteLine($"---> {text}");
+            } // if
+            else if(cmd == "replace")
+            {
+               if(text == "<myBot>")
+               {
+                  string outLine = "mybot = \"" + robotName + "/commands\""; 
+                  Console.WriteLine($"---> {outLine}"); 
+               } // if
+               else
+               {
+                  Console.WriteLine($"ERROR - replace command in file {srcFileName} given unknown argument of {text}."); 
+               } // else
+            } // else if
+            else if(cmd == "insert")
+            {
+               if(text == "<templateFile>")
+               {
+                  Console.WriteLine($"---> {line}"); 
+               } // if
+               else
+               {
+                  Console.WriteLine($"ERROR - insert command in file {srcFileName} given unknown argument of {text}."); 
+               } // else
+            } // else if
+            else
+            {
+               Console.WriteLine($"ERROR - command {cmd} in file {srcFileName} unknown."); 
+            }
+         } // foreach()
+      } // transformSrc()
 
       /// <summary>
       /// Displays the content of the source template file to the console.
@@ -75,16 +134,18 @@ namespace HexbotCompiler
    /// </summary>
    class scriptFile
    {
-      private string[] srcLines = {""};   
+      private string[] srcLines = {""}; 
+      private string[] outLines = {""};   
       private string srcFileName = "";
+
 
       /// <summary>
       /// Puts each line of the script file into an element of a string array.
       /// <summary>
       /// <param name="null">Does not return any values.</param>
-      /// <returns>A string array</returns>
+      /// <returns>null</returns>
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
-      public string[] getSrcContent()
+      public void getSrcContent()
       {
          bool scriptFileNotFound  = true;
          while(scriptFileNotFound)
@@ -102,8 +163,52 @@ namespace HexbotCompiler
                Console.WriteLine($"Attempted read of {srcFileName} resulted in error {e}.");
             } // catch() 
          } // while
-         return srcLines;   
       } // getSrcContent()
+
+      /// <summary>
+      /// Transform source file lines to output lines.
+      /// <summary>
+      /// <param name="null">Does not accept any arguments.</param>
+      /// <returns>null. Does not return anything.</returns>
+      public void transformSrc()
+      {
+         Console.WriteLine($"Transforming script source file to output strings.");
+/*
+         foreach(string line in srcLines)
+         {
+            var parse = line.Split (' ', 2);
+            var cmd = parse[0].Trim();  
+            var text = parse[1].Trim();   
+            Console.WriteLine($"---> cmd = {cmd}");  
+            Console.WriteLine($"---> text = {text}");  
+         } // foreach
+*/
+         Console.WriteLine($"-->send(\"NEW_FLOW\")"); // First line of script
+         foreach(string line in srcLines)
+         {
+            var parse = line.Split (' ', 2);
+            var cmd = parse[0].Trim();  
+            Console.WriteLine("-->" + cmd);
+            if(cmd == "symdef")
+            {
+               string newLine = "// " + line + " // symdef syntax not yet implemented in compiler.";
+               Console.WriteLine($"-->{newLine}");
+            } // if
+            else if(cmd == "MoveToHomePosition")
+            {
+               Console.WriteLine("-->send(\"Flow,1000,MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")");
+            } // if
+            else if(cmd == "command")
+            {
+               string newLine = "// " + line + " // command syntax not yet implemented in compiler.";
+               Console.WriteLine($"-->{newLine}");
+            } // if
+            else
+            {
+               Console.WriteLine($"-->ERROR - command {cmd} in file {srcFileName} is unknown.");
+            } // else
+         } // foreach()
+      } // transformSrc()
 
       /// <summary>
       /// Displays the content of the source template file to the console.
@@ -142,10 +247,13 @@ namespace HexbotCompiler
          var script = new scriptFile(); 
          Console.Clear();
          template.srcFileName = "template.txt";
-         string[] scriptLines = script.getSrcContent();
-         script.displaySrcContent();
-         string[] templateLines = template.getSrcContent();
-         template.displaySrcContent();
+         script.getSrcContent();
+         script.transformSrc();
+//         script.displaySrcContent();
+         template.getSrcContent();
+         template.transformSrc();
+//         template.displaySrcContent();
+
       } // Main()
    } // class Program
 } // namespace HexbotCompiler
