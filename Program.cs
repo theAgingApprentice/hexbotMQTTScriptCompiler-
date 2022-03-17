@@ -172,40 +172,100 @@ namespace HexbotCompiler
       /// <returns>null. Does not return anything.</returns>
       public void transformSrc()
       {
+         string tmr = "1000"; // How long to allow for move in ms.
          Console.WriteLine($"Transforming script source file to output strings.");
-/*
-         foreach(string line in srcLines)
-         {
-            var parse = line.Split (' ', 2);
-            var cmd = parse[0].Trim();  
-            var text = parse[1].Trim();   
-            Console.WriteLine($"---> cmd = {cmd}");  
-            Console.WriteLine($"---> text = {text}");  
-         } // foreach
-*/
+         var currentDate = DateTime.Now;
+         string newLine = "// MQTTfx script for Hexbot robot created by hexbotScriptCompiler on ";
+         newLine = newLine + currentDate.Day + " at " + currentDate.TimeOfDay;
+         Console.WriteLine($"-->{newLine}"); // First line of script
          Console.WriteLine($"-->send(\"NEW_FLOW\")"); // First line of script
          foreach(string line in srcLines)
          {
-            var parse = line.Split (' ', 2);
+            var parse = line.Split(' ', 2);
             var cmd = parse[0].Trim();  
-            Console.WriteLine("-->" + cmd);
             if(cmd == "symdef")
             {
-               string newLine = "// " + line + " // symdef syntax not yet implemented in compiler.";
+               newLine = "// " + line + " // symdef syntax not yet implemented in compiler.";
                Console.WriteLine($"-->{newLine}");
             } // if
             else if(cmd == "MoveToHomePosition")
             {
-               Console.WriteLine("-->send(\"Flow,1000,MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")");
+               newLine = "send(\"Flow," + tmr + ",MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
+               Console.WriteLine($"-->{newLine}");
             } // if
             else if(cmd == "command")
             {
-               string newLine = "// " + line + " // command syntax not yet implemented in compiler.";
+               newLine = "// " + line + " // command syntax not yet implemented in compiler.";
+               Console.WriteLine($"-->{newLine}");
+            } // if
+            else if(cmd == "MoveRelHomeLocal")
+            {
+               string sendCmd = "send(\"Flow,"; // First part of send command. 
+               string macro = ",MLRH,"; // Type of send command.
+               string moveStright = "10,0,0,0, "; // Only support move toe in straight line for now.                
+               newLine = sendCmd + tmr + "," + macro + "," + moveStright;
+               var arg = parse[1].Split(',', 4);
+               var leg = arg[0].Trim();
+               var x = arg[1].Trim();
+               var y = arg[2].Trim();
+               var z = arg[3].Trim(); 
+               if(z.EndsWith(","))
+               {
+                  z = z.Remove(z.Length - 1);
+               } // if
+               try
+               {
+                  int legNum = int.Parse(leg);
+                  newLine = sendCmd + tmr + macro + moveStright;
+                  switch(legNum)
+                  {
+                     case 1:
+                        newLine = newLine + x + "," + y + "," + z + ", ";
+                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")"; 
+                        break;
+                     case 2:
+                        newLine = newLine + "0,0,0, "; 
+                        newLine = newLine + x + "," + y + "," + z + ", ";
+                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0\")"; 
+                        break;
+                     case 3:
+                        newLine = newLine + "0,0,0, 0,0,0, "; 
+                        newLine = newLine + x + "," + y + "," + z + ", ";
+                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0\")"; 
+                        break;
+                     case 4:
+                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, "; 
+                        newLine = newLine + x + "," + y + "," + z + ", ";
+                        newLine = newLine + "0,0,0, 0,0,0\")"; 
+                        break;
+                     case 5:
+                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0, "; 
+                        newLine = newLine + x + "," + y + "," + z + ", ";
+                        newLine = newLine + "0,0,0\")"; 
+                        break;
+                     case 6:
+                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, "; 
+                        newLine = newLine + x + "," + y + "," + z + "\")";
+                        break;
+                     default:
+                        Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is invalid");
+                        break;
+                  } // switch
+                  Console.WriteLine($"-->{newLine}");
+               } // try
+               catch (FormatException e)
+               {
+                  Console.WriteLine($"ERROR transforming script file. Parsing leg number caused {e.Message}");
+               } // catch              
+            } // if
+            else if(cmd == "Doit")
+            {
+               newLine = "send(\"DO_FLOW,49,50\")";
                Console.WriteLine($"-->{newLine}");
             } // if
             else
             {
-               Console.WriteLine($"-->ERROR - command {cmd} in file {srcFileName} is unknown.");
+               Console.WriteLine($"ERROR - command {cmd} in file {srcFileName} is unknown.");
             } // else
          } // foreach()
       } // transformSrc()
@@ -257,14 +317,3 @@ namespace HexbotCompiler
       } // Main()
    } // class Program
 } // namespace HexbotCompiler
-
-/*
-//         string scriptName = uInput?.ToString() ?? "";
-
-
-//         var name = Console.ReadLine();
-//         var currentDate = DateTime.Now;
-//         Console.WriteLine($"{Environment.NewLine}Hello, {name}, on {currentDate:d} at {currentDate:t}!");
-//         Console.Write($"{Environment.NewLine}Press any key to exit...");
-//         Console.ReadKey(true);
-*/
