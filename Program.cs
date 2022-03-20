@@ -5,6 +5,8 @@
 /// Passing a variable number of parameters to a method: https://www.c-sharpcorner.com/UploadFile/manas1/params-in-C-Sharp-pass-variable-number-of-parameters-to-method/
 /// Before running be sure to save the file. This is NOT done automatically in VSC!
 /// To run be in src directry and type "dotnet run".
+//using System;
+//using System.IO;
 namespace HexbotCompiler
 {
    /// <summary>
@@ -20,8 +22,11 @@ namespace HexbotCompiler
    /// </summary>
    class templateFile
    {
-      private string[] srcLines = {""}; 
-      private string[] outLines = {""};   
+      const int MAX_SIZE = 200; // Maximum file size  
+      private string[] srcLines = new string[MAX_SIZE]; // Holds lines from template source file.
+      private string[] outLines = new string[MAX_SIZE]; // Holds translated lines of sourse file. 
+      int outIndex = 0; // Index used for tracking lines translated. 
+
       public string srcFileName = "template.txt";
       private string robotName = "";
       /// <summary>
@@ -56,6 +61,7 @@ namespace HexbotCompiler
       /// <returns>null</returns>
       public void transformSrc()
       {
+         string newLine = "";
          System.Console.WriteLine($"Transforming template source file to output strings.");
          bool invalidInput = true;
          while(invalidInput)
@@ -75,34 +81,56 @@ namespace HexbotCompiler
             var text = parse[1].Trim();     
             if(cmd == "copy")
             {
-               Console.WriteLine($"---> {text}");
+               
+               newLine = text;
+//               Console.WriteLine($"---> {newLine}");
+               outLines[outIndex] = newLine;
+               outIndex++;
             } // if
             else if(cmd == "replace")
             {
                if(text == "<myBot>")
                {
                   string outLine = "mybot = \"" + robotName + "/commands\""; 
-                  Console.WriteLine($"---> {outLine}"); 
+                  newLine = outLine;
+//                  Console.WriteLine($"---> {newLine}"); 
+                  outLines[outIndex] = newLine;
+                  outIndex++;
                } // if
                else
                {
                   Console.WriteLine($"ERROR - replace command in file {srcFileName} given unknown argument of {text}."); 
+                  newLine = "// COMPILER ERROR. Replace command in source file " + srcFileName;
+                  newLine = newLine + " has unknow argument: " + text;
+                  outLines[outIndex] = newLine;
+                  outIndex++;
                } // else
             } // else if
             else if(cmd == "insert")
             {
                if(text == "<templateFile>")
                {
-                  Console.WriteLine($"---> {line}"); 
+//                  Console.WriteLine($"---> {line}"); 
+                  newLine = line;
+                  outLines[outIndex] = newLine;
+                  outIndex++;
                } // if
                else
                {
                   Console.WriteLine($"ERROR - insert command in file {srcFileName} given unknown argument of {text}."); 
+                  newLine = "COMPILER ERROR. Insert command in source file " + srcFileName;
+                  newLine = newLine + " as unknown argument: " + text;
+                  outLines[outIndex] = newLine;
+                  outIndex++;
                } // else
             } // else if
             else
             {
                Console.WriteLine($"ERROR - command {cmd} in file {srcFileName} unknown."); 
+               newLine = "COMPILER ERROR. Command " + cmd;
+               newLine = newLine + " in file " + srcFileName + " is unknown.";
+               outLines[outIndex] = newLine;
+               outIndex++;
             }
          } // foreach()
       } // transformSrc()
@@ -118,10 +146,22 @@ namespace HexbotCompiler
          System.Console.WriteLine($"Content of template source file called {srcFileName}... ");
          foreach(string line in srcLines)
          {
-            Console.WriteLine("-->" + line);
+            Console.WriteLine("[templateFile.displayContent] " + line);
          } // foreach()
       } // displayContent()
-
+      
+      /// <summary>
+      /// Return string array of script file transformed.
+      /// <summary>
+      /// <param name="null">Does not accept any arguments.</param>
+      /// <returns>Steing array containing the translated script file</returns>
+      /// <exception cref="NoException">Does not throw any exceptions.</exception>
+      public string[] getXfrmContent()
+      {
+         this.getSrcContent();
+         this.transformSrc();
+         return outLines;
+      } // getXfrmContent()      
    } // class templateFile
 
    /// <summary>
@@ -134,8 +174,10 @@ namespace HexbotCompiler
    /// </summary>
    class scriptFile
    {
-      private string[] srcLines = {""}; 
-      private string[] outLines = {""};   
+      const int MAX_SIZE = 200; // Maximum file size  
+      private string[] srcLines = new string[MAX_SIZE]; // Holds lines from script source file.
+      private string[] outLines = new string[MAX_SIZE]; // Holds translated lines of sourse file. 
+      int outIndex = 0; // Index used for tracking lines translated. 
       private string srcFileName = "";
 
 
@@ -160,7 +202,7 @@ namespace HexbotCompiler
             } // try 
             catch(FileNotFoundException e) 
             {
-               Console.WriteLine($"Attempted read of {srcFileName} resulted in error {e}.");
+               Console.WriteLine($"ERROR. Attempted read of {srcFileName} resulted in error {e}.");
             } // catch() 
          } // while
       } // getSrcContent()
@@ -173,12 +215,17 @@ namespace HexbotCompiler
       public void transformSrc()
       {
          string tmr = "1000"; // How long to allow for move in ms.
-         Console.WriteLine($"Transforming script source file to output strings.");
+//         Console.WriteLine($"Transforming script source file to output strings.");
          var currentDate = DateTime.Now;
          string newLine = "// MQTTfx script for Hexbot robot created by hexbotScriptCompiler on ";
          newLine = newLine + currentDate.Day + " at " + currentDate.TimeOfDay;
-         Console.WriteLine($"-->{newLine}"); // First line of script
-         Console.WriteLine($"-->send(\"NEW_FLOW\")"); // First line of script
+//         Console.WriteLine($"-->{newLine}"); // First line of script
+         outLines[outIndex] = newLine;
+         outIndex++;
+         newLine = "send(\"NEW_FLOW\")";
+//         Console.WriteLine($"-->{newLine}"); 
+         outLines[outIndex] = newLine;
+         outIndex++;
          foreach(string line in srcLines)
          {
             var parse = line.Split(' ', 2);
@@ -186,17 +233,23 @@ namespace HexbotCompiler
             if(cmd == "symdef")
             {
                newLine = "// " + line + " // symdef syntax not yet implemented in compiler.";
-               Console.WriteLine($"-->{newLine}");
+//               Console.WriteLine($"-->{newLine}");
+               outLines[outIndex] = newLine;
+               outIndex++;
             } // if
             else if(cmd == "MoveToHomePosition")
             {
                newLine = "send(\"Flow," + tmr + ",MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
-               Console.WriteLine($"-->{newLine}");
+//               Console.WriteLine($"-->{newLine}");
+               outLines[outIndex] = newLine;
+               outIndex++;
             } // if
             else if(cmd == "command")
             {
                newLine = "// " + line + " // command syntax not yet implemented in compiler.";
-               Console.WriteLine($"-->{newLine}");
+//               Console.WriteLine($"-->{newLine}");
+               outLines[outIndex] = newLine;
+               outIndex++;
             } // if
             else if(cmd == "MoveRelHomeLocal")
             {
@@ -249,23 +302,36 @@ namespace HexbotCompiler
                         break;
                      default:
                         Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is invalid");
+                        newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal lg number: " + legNum;
+                        outLines[outIndex] = newLine;
+                        outIndex++;
                         break;
                   } // switch
-                  Console.WriteLine($"-->{newLine}");
+//                  Console.WriteLine($"-->{newLine}");
+                  outLines[outIndex] = newLine;
+                  outIndex++;
                } // try
                catch (FormatException e)
                {
                   Console.WriteLine($"ERROR transforming script file. Parsing leg number caused {e.Message}");
+                  newLine = "// COMPILER ERROR! Parsing leg command in script src file: " + e.Message;
+                  outLines[outIndex] = newLine;
+                  outIndex++;
                } // catch              
             } // if
             else if(cmd == "Doit")
             {
                newLine = "send(\"DO_FLOW,49,50\")";
-               Console.WriteLine($"-->{newLine}");
+//               Console.WriteLine($"-->{newLine}");
+               outLines[outIndex] = newLine;
+               outIndex++;
             } // if
             else
             {
                Console.WriteLine($"ERROR - command {cmd} in file {srcFileName} is unknown.");
+               newLine = "// COMPILER ERROR! Unknown command in script src file: " + cmd;
+               outLines[outIndex] = newLine;
+               outIndex++;
             } // else
          } // foreach()
       } // transformSrc()
@@ -281,10 +347,87 @@ namespace HexbotCompiler
          System.Console.WriteLine($"Content of script source file called {srcFileName}... ");
          foreach(string line in srcLines)
          {
-            Console.WriteLine("-->" + line);
+            Console.WriteLine("[scriptFile.displaySrcContent] " + line);
          } // foreach()
       } // displayContent()      
+
+      /// <summary>
+      /// Return string array of script file transformed.
+      /// <summary>
+      /// <param name="null">Does not accept any arguments.</param>
+      /// <returns>Steing array containing the translated script file</returns>
+      /// <exception cref="NoException">Does not throw any exceptions.</exception>
+      public string[] getXfrmContent()
+      {
+         this.getSrcContent();
+         this.transformSrc();
+         return outLines;
+      } // getXfrmContent()      
    } // class scriptFile
+   
+   /// <summary>
+   /// This class manages the Hexbot MQTTfx file. Propertylist:
+   /// <list type="Properties">
+   /// <item>
+   /// <description>getSrcContent</description>
+   /// </item>
+   /// <item>
+   /// <description>templateName</description>
+   /// </item>
+   /// </list>
+   /// </summary>
+   class fxFile
+   {
+      public void create(string[] scriptFile, string[] templateFile)
+      {
+         bool invalidInput = true;
+         string outFile = "";
+         while(invalidInput)
+         {
+            Console.WriteLine("Please enter the MQTTfx file name:");
+            var userInput = Console.ReadLine();
+            if(userInput != null)
+            {
+               if(File.Exists(userInput)) 
+               {
+                  Console.WriteLine("The file exists. Do you wish to overwite it (Y/N)");
+                  if(Console.ReadKey().Key == ConsoleKey.Y)
+                  {
+                     outFile = userInput;
+                     invalidInput = false;
+                  } // if
+               } // if
+               else
+               {
+                  outFile = userInput;
+                  invalidInput = false;
+               } // else
+            } // if
+         } // While
+//         using(StreamWriter file = new(outFile);
+//         await file.WriteLineAsync(line);
+         foreach(string lineTemplate in templateFile)
+         {
+            if(lineTemplate != null)
+            {
+               if(lineTemplate == "insert <templateFile>")
+               {
+                  foreach(string lineScript in scriptFile)
+                  {
+                     if(lineScript != null)
+                     {
+                        Console.WriteLine("[fxFile.create] " + lineScript); 
+                     } // if
+                  } // foreach
+               } // if
+               else
+               {
+                  Console.WriteLine("[fxFile.create] " + lineTemplate);            
+               } // else
+            } // if
+         } // foreach
+      } // create()
+   } // class fxFile
 
    /// <summary>
    /// Generates MQTTfx files that control the Hexbot legs.
@@ -303,17 +446,16 @@ namespace HexbotCompiler
       /// <returns>null</returns>
       static void Main(string[] args)
       {
-         var template = new templateFile();
-         var script = new scriptFile(); 
+         var template = new templateFile(); // Object reference to template file.
+         var script = new scriptFile(); // Object reference to script file.
+         var mqttx = new fxFile(); // Object reference to MQTTfx file. 
+         string[] scriptArray = new string[200]; // Content of transformed script file.
+         string[] templateArray = new string[200]; // Content of transformed template file.  
+         template.srcFileName = "template.txt";      
          Console.Clear();
-         template.srcFileName = "template.txt";
-         script.getSrcContent();
-         script.transformSrc();
-//         script.displaySrcContent();
-         template.getSrcContent();
-         template.transformSrc();
-//         template.displaySrcContent();
-
+         scriptArray = script.getXfrmContent(); // Get transformed script file content.
+         templateArray = template.getXfrmContent(); // Get transformed template file content.
+         mqttx.create(scriptArray, templateArray); // Create MQTTfx file.
       } // Main()
    } // class Program
 } // namespace HexbotCompiler
