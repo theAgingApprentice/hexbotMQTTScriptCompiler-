@@ -26,7 +26,6 @@ namespace HexbotCompiler
       private string[] srcLines = new string[MAX_SIZE]; // Holds lines from template source file.
       private string[] outLines = new string[MAX_SIZE]; // Holds translated lines of sourse file. 
       int outIndex = 0; // Index used for tracking lines translated. 
-
       public string srcFileName = "template.txt";
       private string robotName = "";
       /// <summary>
@@ -66,11 +65,19 @@ namespace HexbotCompiler
          bool invalidInput = true;
          while(invalidInput)
          {
-            Console.WriteLine("Please enter the robot name:");
+            Console.WriteLine("Please enter the robot name [or shortcut Doug or Andrew]:");
             var userInput = Console.ReadLine();
             if(userInput != "")
             {
                robotName = userInput?.ToString() ?? ""; // Convert input to string (no null).
+               if(robotName.ToUpper() == "ANDREW")
+               {
+                  robotName = "Hexbot94B97E5F4A40";
+               } // if
+               if(robotName.ToUpper() == "DOUG")
+               {
+                  robotName = "Hexbot3C61054ADD98";
+               } // if
                invalidInput = false;
             } // if
          } // while
@@ -215,15 +222,8 @@ namespace HexbotCompiler
       public void transformSrc()
       {
          string tmr = "1000"; // How long to allow for move in ms.
-//         Console.WriteLine($"Transforming script source file to output strings.");
-         var currentDate = DateTime.Now;
-         string newLine = "// MQTTfx script for Hexbot robot created by hexbotScriptCompiler on ";
-         newLine = newLine + currentDate.Day + " at " + currentDate.TimeOfDay;
-//         Console.WriteLine($"-->{newLine}"); // First line of script
-         outLines[outIndex] = newLine;
-         outIndex++;
+         string newLine = "";
          newLine = "send(\"NEW_FLOW\")";
-//         Console.WriteLine($"-->{newLine}"); 
          outLines[outIndex] = newLine;
          outIndex++;
          foreach(string line in srcLines)
@@ -233,21 +233,18 @@ namespace HexbotCompiler
             if(cmd == "symdef")
             {
                newLine = "// " + line + " // symdef syntax not yet implemented in compiler.";
-//               Console.WriteLine($"-->{newLine}");
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
             else if(cmd == "MoveToHomePosition")
             {
                newLine = "send(\"Flow," + tmr + ",MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
-//               Console.WriteLine($"-->{newLine}");
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
             else if(cmd == "command")
             {
                newLine = "// " + line + " // command syntax not yet implemented in compiler.";
-//               Console.WriteLine($"-->{newLine}");
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
@@ -307,7 +304,6 @@ namespace HexbotCompiler
                         outIndex++;
                         break;
                   } // switch
-//                  Console.WriteLine($"-->{newLine}");
                   outLines[outIndex] = newLine;
                   outIndex++;
                } // try
@@ -321,8 +317,7 @@ namespace HexbotCompiler
             } // if
             else if(cmd == "Doit")
             {
-               newLine = "send(\"DO_FLOW,49,50\")";
-//               Console.WriteLine($"-->{newLine}");
+               newLine = "send(\"FLOW,49,50\")";
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
@@ -404,8 +399,18 @@ namespace HexbotCompiler
                } // else
             } // if
          } // While
-//         using(StreamWriter file = new(outFile);
-//         await file.WriteLineAsync(line);
+         var currentDate = DateTime.Now;
+         string newLine = "// This MQTTfx script for Hexbot robot created by hexbotScriptCompiler on ";
+         newLine = newLine + currentDate.Month + "/" + currentDate.Day + "/" + currentDate.Year;
+         newLine = newLine +  " at " + currentDate.TimeOfDay;
+         using(FileStream aFile = new FileStream(outFile, FileMode.Create, FileAccess.Write))
+         using(StreamWriter sw = new StreamWriter(aFile))
+         {
+            sw.WriteLine("// *****************************************************************************************************");
+            sw.WriteLine(newLine);
+            sw.WriteLine("// NOTE: Doug's robot = Hexbot3C61054ADD98, Andrew's robot = Hexbot94B97E5F4A40.");
+            sw.WriteLine("// *****************************************************************************************************");
+         } // using
          foreach(string lineTemplate in templateFile)
          {
             if(lineTemplate != null)
@@ -416,13 +421,21 @@ namespace HexbotCompiler
                   {
                      if(lineScript != null)
                      {
-                        Console.WriteLine("[fxFile.create] " + lineScript); 
+                        using(FileStream aFile = new FileStream(outFile, FileMode.Append, FileAccess.Write))
+                        using(StreamWriter sw = new StreamWriter(aFile))
+                        {
+                           sw.WriteLine(lineScript);
+                        } // using
                      } // if
                   } // foreach
                } // if
                else
                {
-                  Console.WriteLine("[fxFile.create] " + lineTemplate);            
+                  using(FileStream aFile = new FileStream(outFile, FileMode.Append, FileAccess.Write))
+                  using(StreamWriter sw = new StreamWriter(aFile))
+                  {
+                     sw.WriteLine(lineTemplate);
+                  } // using
                } // else
             } // if
          } // foreach
