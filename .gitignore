@@ -32,6 +32,11 @@ platformio.ini
 bin/*
 
 #
+# C# Compiler output.
+#
+obj/*
+
+#
 # Build - Part of the Espressif tool chain.
 #
 output.map
