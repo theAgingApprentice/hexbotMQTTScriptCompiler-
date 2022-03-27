@@ -34,7 +34,8 @@ namespace HexbotCompiler
       /// <param name="null">Does not return any values.</param>
       /// <returns>null</returns>
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
-      public void getSrcContent()
+
+            public void getSrcContent()      // we're in templateFile class
       {
          if (File.Exists(srcFileName)) 
          {
@@ -58,7 +59,7 @@ namespace HexbotCompiler
       /// <summary>
       /// <param name="null">Does not return any values.</param>
       /// <returns>null</returns>
-      public void transformSrc()
+      public void transformSrc()      // we're in templateFile class
       {
          string newLine = "";
          System.Console.WriteLine($"Transforming template source file to output strings.");
@@ -148,7 +149,7 @@ namespace HexbotCompiler
       /// <param name="null">Does not accept any arguments.</param>
       /// <returns>Does not return any values</returns>
       /// <exception cref="NoException">Does not throw any exceptions.</exception>
-      public void displaySrcContent()
+      public void displaySrcContent()      // we're in templateFile class
       {
          System.Console.WriteLine($"Content of template source file called {srcFileName}... ");
          foreach(string line in srcLines)
@@ -163,7 +164,7 @@ namespace HexbotCompiler
       /// <param name="null">Does not accept any arguments.</param>
       /// <returns>Steing array containing the translated script file</returns>
       /// <exception cref="NoException">Does not throw any exceptions.</exception>
-      public string[] getXfrmContent()
+      public string[] getXfrmContent()      // we're in templateFile class
       {
          this.getSrcContent();
          this.transformSrc();
@@ -186,7 +187,15 @@ namespace HexbotCompiler
       private string[] outLines = new string[MAX_SIZE]; // Holds translated lines of sourse file. 
       int outIndex = 0; // Index used for tracking lines translated. 
       private string srcFileName = "";
+      // arrays to track running absolute locations of 6 legs, each with X, Y and Z
+      private double[] legAbsX = new double[7], legAbsY = new double[7], legAbsZ = new double[7];
+      // arrays to track running local locations of 6 legs, each with X, Y and Z
+      private double[] legLocX = new double[7], legLocY = new double[7], legLocZ = new double[7];
 
+      double fp_frontHipX = 3.82739F + 7.13528F * .707107F;  // = 8.872796
+      double fp_frontHipY = 5.04750F;
+      double fp_sideHipX = 0;
+      double fp_sideHipY = 6.9423F;
 
       /// <summary>
       /// Puts each line of the script file into an element of a string array.
@@ -194,7 +203,7 @@ namespace HexbotCompiler
       /// <param name="null">Does not return any values.</param>
       /// <returns>null</returns>
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
-      public void getSrcContent()
+      public void getSrcContent()      // we're in scriptFile class
       {
          bool scriptFileNotFound  = true;
          while(scriptFileNotFound)
@@ -210,22 +219,91 @@ namespace HexbotCompiler
             catch(FileNotFoundException e) 
             {
                Console.WriteLine($"ERROR. Attempted read of {srcFileName} resulted in error {e}.");
+               // scriptFileNotFound  = true;
+
             } // catch() 
          } // while
       } // getSrcContent()
+
+      // C# seems to be missing a RADIANS function, so...
+
+      double rad(double angle)
+      {
+         return (Math.PI / 180F) * angle;
+      }
+
+
+      // translate global coordinates to local coordinates for a specified leg
+      private void transGlobalToLocal( int leg, double gx, double gy, double gz, ref double lx, ref double Ly, ref double Lz)
+      {
+      // rotating a vector(X,Y) thru counter clockwise angle B, to get (Xr,Yr)
+      //    Xr = cos(B) * X - sin(B) * Y
+      //    Yr = sin(B) * X + cos(B) * Y
+
+         double Xrt, Yrt ;       //temp variables for rotated global X & Y coords
+         legLocY[leg] = gz;      // height above robot is global Z, local Y
+         switch (leg) 
+         {
+            case 1:
+            // Front Right leg
+            Xrt = Math.Cos(rad(-45F)) * (gx-fp_frontHipX) - Math.Sin(rad(-45F)) * (gy + fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = Math.Sin(rad(-45)) * (gx-fp_frontHipX) + Math.Cos(rad(-45)) * (gy + fp_frontHipY);
+            legLocX[leg] = -1 * Yrt;
+            legLocZ[leg] = Xrt;
+            break;
+            /*
+            case 2:
+            // Middle Right leg
+            f_endLegX[legNumber] = -1 * gy - fp_sideHipY;
+            f_endLegZ[legNumber] = gx;
+            break;
+            case 3:
+            // Back Right leg
+            Xrt = cos_p45 * (gx + fp_frontHipX) - sin_p45 * (gy + fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = sin_p45 * (gx + fp_frontHipX) + cos_p45 * (gy + fp_frontHipY);
+            f_endLegX[legNumber] = -1 * Yrt;
+            f_endLegZ[legNumber] = Xrt;        
+            break;
+            case 4:
+            // Front Left leg
+            Xrt = cos_p45 * (gx - fp_frontHipX) - sin_p45 * (gy - fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = sin_p45 * (gx - fp_frontHipX) + cos_p45 * (gy - fp_frontHipY);
+            f_endLegX[legNumber] = Yrt;
+            f_endLegZ[legNumber] = -1 * Xrt;         
+            break;
+            case 5:  
+            // Middle Left leg
+            f_endLegX[legNumber] = gy - fp_sideHipY;
+            f_endLegZ[legNumber] = -1 * gx ;
+            break;
+            case 6:
+            // Back Left leg
+            Xrt = cos_m45 * (gx - (-fp_frontHipX)) - sin_m45 * (gy - fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = sin_m45 * (gx - (-fp_frontHipX)) + cos_m45 * (gy - fp_frontHipY);
+            f_endLegX[legNumber] = Yrt;
+            f_endLegZ[legNumber] = -1* Xrt;        
+            break;
+         */
+            default:
+            return ;
+         }
+         return ;
+      }  
+
 
       /// <summary>
       /// Transform source file lines to output lines.
       /// <summary>
       /// <param name="null">Does not accept any arguments.</param>
       /// <returns>null. Does not return anything.</returns>
-      public void transformSrc()
+      public void transformSrc()      // we're in scriptFile class
       {
          string tmr = "1000"; // How long to allow for move in ms.
          string newLine = "";
-         newLine = "send(\"NEW_FLOW\")";
-         outLines[outIndex] = newLine;
-         outIndex++;
+         // following removed, as its done in the template file
+         //newLine = "send(\"NEW_FLOW\")";
+         //outLines[outIndex] = newLine;
+         //outIndex++;
          foreach(string line in srcLines)
          {
             var parse = line.Split(' ', 2);
@@ -317,9 +395,14 @@ namespace HexbotCompiler
             } // if
             else if(cmd == "Doit")
             {
-               newLine = "send(\"FLOW,49,50\")";
-               outLines[outIndex] = newLine;
-               outIndex++;
+               // the DO_FLOW command is sent once, at end of flow commands, by a template file entry
+               // newLine = "send(\"FLOW,49,50\")";
+               //outLines[outIndex] = newLine;
+               //outIndex++;
+
+               // eventually, the doit command will output a move command like MLRH that performs
+               // all leg moves requested since last DOIT, and those move commands won't generate output
+
             } // if
             else
             {
@@ -337,7 +420,7 @@ namespace HexbotCompiler
       /// <param name="null">Does not accept any arguments.</param>
       /// <returns>Does not return any values</returns>
       /// <exception cref="NoException">Does not throw any exceptions.</exception>
-      public void displaySrcContent()
+      public void displaySrcContent()      // we're in scriptFile class
       {
          System.Console.WriteLine($"Content of script source file called {srcFileName}... ");
          foreach(string line in srcLines)
@@ -352,7 +435,7 @@ namespace HexbotCompiler
       /// <param name="null">Does not accept any arguments.</param>
       /// <returns>Steing array containing the translated script file</returns>
       /// <exception cref="NoException">Does not throw any exceptions.</exception>
-      public string[] getXfrmContent()
+      public string[] getXfrmContent()      // we're in scriptFile class
       {
          this.getSrcContent();
          this.transformSrc();
