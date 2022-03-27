@@ -429,10 +429,7 @@ namespace HexbotCompiler
             } // if
             else if(cmd == "MoveRelHomeLocal")
             {
-               string sendCmd = "send(\"Flow,"; // First part of send command. 
-               string macro = ",MLRH,"; // Type of send command.
-               string moveStright = "10,0,0,0, "; // Only support move toe in straight line for now.                
-               newLine = sendCmd + tmr + "," + macro + "," + moveStright;
+               
                var arg = parse[1].Split(',', 4);
                var leg = arg[0].Trim();
                var x = arg[1].Trim();
@@ -445,54 +442,31 @@ namespace HexbotCompiler
                try
                {
                   int legNum = int.Parse(leg);
-                  newLine = sendCmd + tmr + macro + moveStright;
-                  switch(legNum)
+                  if(legNum < 0 || legNum > 6)        // range check given leg number
                   {
-                     case 1:
-                        newLine = newLine + x + "," + y + "," + z + ", ";
-                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")"; 
-                        break;
-                     case 2:
-                        newLine = newLine + "0,0,0, "; 
-                        newLine = newLine + x + "," + y + "," + z + ", ";
-                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0\")"; 
-                        break;
-                     case 3:
-                        newLine = newLine + "0,0,0, 0,0,0, "; 
-                        newLine = newLine + x + "," + y + "," + z + ", ";
-                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0\")"; 
-                        break;
-                     case 4:
-                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, "; 
-                        newLine = newLine + x + "," + y + "," + z + ", ";
-                        newLine = newLine + "0,0,0, 0,0,0\")"; 
-                        break;
-                     case 5:
-                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0, "; 
-                        newLine = newLine + x + "," + y + "," + z + ", ";
-                        newLine = newLine + "0,0,0\")"; 
-                        break;
-                     case 6:
-                        newLine = newLine + "0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, "; 
-                        newLine = newLine + x + "," + y + "," + z + "\")";
-                        break;
-                     default:
-                        Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is invalid");
-                        newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal lg number: " + legNum;
-                        outLines[outIndex] = newLine;
-                        outIndex++;
-                        break;
-                  } // switch
-                  outLines[outIndex] = newLine;
-                  outIndex++;
+                     Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is invalid");
+                     newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal lg number: " + legNum;
+                     outLines[outIndex] = newLine;
+                     outIndex++;
+                     break;
+                  }
+                  else
+                  {
+                     // update the toe position for the specified leg as requested
+                     legLocX[legNum] += Convert.ToDouble(x);
+                     legLocY[legNum] += Convert.ToDouble(y);
+                     legLocZ[legNum] += Convert.ToDouble(z);
+                     
+                     // now update the equivalent global coordinates
+                     transLocalToGlobal(legNum, legLocX[legNum], legLocY[legNum], legLocZ[legNum], ref legGloX[legNum], ref legGloY[legNum], ref legGloZ[legNum]);
+
+                  } // else legNum check
+               
                } // try
                catch (FormatException e)
                {
                   Console.WriteLine($"ERROR transforming script file. Parsing leg number caused {e.Message}");
-                  newLine = "// COMPILER ERROR! Parsing leg command in script src file: " + e.Message;
-                  outLines[outIndex] = newLine;
-                  outIndex++;
-               } // catch              
+               } // catch            
             } // if
             else if(cmd == "Doit")
             {
@@ -504,6 +478,19 @@ namespace HexbotCompiler
                // eventually, the doit command will output a move command like MLRH that performs
                // all leg moves requested since last DOIT, and those move commands won't generate output
 
+               string sendCmd = "send(\"Flow,"; // First part of send command. 
+               string macro = "MLC"; // Type of send command.
+               string moveStright = "10,0,0,0"; // Only support move toe in straight line for now.                
+               newLine = sendCmd + tmr + "," + macro + "," + moveStright;
+               // now output 3 numbers representing local coords, for each leg
+               for(int l=1; l<=6; l++)
+               {
+                  newLine += " ," + legLocX[l].ToString();   // append X value
+                  newLine += "," + legLocY[l].ToString();   // append Y value
+                  newLine += "," + legLocZ[l].ToString();   // append Z value
+               }  // for l=
+               outLines[outIndex] = newLine + "\")";
+               outIndex++;
             } // if
             else
             {
