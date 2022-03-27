@@ -188,9 +188,11 @@ namespace HexbotCompiler
       int outIndex = 0; // Index used for tracking lines translated. 
       private string srcFileName = "";
       // arrays to track running absolute locations of 6 legs, each with X, Y and Z
-      private double[] legAbsX = new double[7], legAbsY = new double[7], legAbsZ = new double[7];
+      private double[] legGloX = new double[7], legGloY = new double[7], legGloZ = new double[7];
       // arrays to track running local locations of 6 legs, each with X, Y and Z
       private double[] legLocX = new double[7], legLocY = new double[7], legLocZ = new double[7];
+      public double[] f_hipX = new double[7], f_hipY = new double[7];
+      int leg;       // often used as a loop index
 
       double fp_frontHipX = 3.82739F + 7.13528F * .707107F;  // = 8.872796
       double fp_frontHipY = 5.04750F;
@@ -205,6 +207,9 @@ namespace HexbotCompiler
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
       public void getSrcContent()      // we're in scriptFile class
       {
+         // some setup stuff for script processing
+         setupForScript();
+
          bool scriptFileNotFound  = true;
          while(scriptFileNotFound)
          {
@@ -234,62 +239,152 @@ namespace HexbotCompiler
 
 
       // translate global coordinates to local coordinates for a specified leg
-      private void transGlobalToLocal( int leg, double gx, double gy, double gz, ref double lx, ref double Ly, ref double Lz)
+      private void transGlobalToLocal( int leg, double gx, double gy, double gz, ref double lx, ref double ly, ref double lz)
       {
       // rotating a vector(X,Y) thru counter clockwise angle B, to get (Xr,Yr)
       //    Xr = cos(B) * X - sin(B) * Y
       //    Yr = sin(B) * X + cos(B) * Y
 
          double Xrt, Yrt ;       //temp variables for rotated global X & Y coords
-         legLocY[leg] = gz;      // height above robot is global Z, local Y
+         lz = fp_sideHipX;       //  null statement so compiler won't complain fp_sideHipX is unreferenced
+         ly = gz;      // height above robot is global Z, local Y
          switch (leg) 
          {
             case 1:
             // Front Right leg
-            Xrt = Math.Cos(rad(-45F)) * (gx-fp_frontHipX) - Math.Sin(rad(-45F)) * (gy + fp_frontHipY);  // rotated (Xg,Yg)
-            Yrt = Math.Sin(rad(-45)) * (gx-fp_frontHipX) + Math.Cos(rad(-45)) * (gy + fp_frontHipY);
-            legLocX[leg] = -1 * Yrt;
-            legLocZ[leg] = Xrt;
+            Xrt = Math.Cos(rad(-45)) * (gx - fp_frontHipX) - Math.Sin(rad(-45)) * (gy + fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = Math.Sin(rad(-45)) * (gx - fp_frontHipX) + Math.Cos(rad(-45)) * (gy + fp_frontHipY);
+            lx = -1 * Yrt;
+            lz = Xrt;
             break;
-            /*
+         
             case 2:
             // Middle Right leg
-            f_endLegX[legNumber] = -1 * gy - fp_sideHipY;
-            f_endLegZ[legNumber] = gx;
+            lx = -1 * gy - fp_sideHipY;
+            lz = gx;
             break;
+
             case 3:
             // Back Right leg
-            Xrt = cos_p45 * (gx + fp_frontHipX) - sin_p45 * (gy + fp_frontHipY);  // rotated (Xg,Yg)
-            Yrt = sin_p45 * (gx + fp_frontHipX) + cos_p45 * (gy + fp_frontHipY);
-            f_endLegX[legNumber] = -1 * Yrt;
-            f_endLegZ[legNumber] = Xrt;        
+            Xrt = Math.Cos(rad(45)) * (gx + fp_frontHipX) - Math.Sin(rad(45)) * (gy + fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = Math.Sin(rad(45)) * (gx - fp_frontHipX) + Math.Cos(rad(45)) * (gy + fp_frontHipY);
+            lx = -1 * Yrt;
+            lz = Xrt;        
             break;
+
             case 4:
             // Front Left leg
-            Xrt = cos_p45 * (gx - fp_frontHipX) - sin_p45 * (gy - fp_frontHipY);  // rotated (Xg,Yg)
-            Yrt = sin_p45 * (gx - fp_frontHipX) + cos_p45 * (gy - fp_frontHipY);
-            f_endLegX[legNumber] = Yrt;
-            f_endLegZ[legNumber] = -1 * Xrt;         
+            Xrt = Math.Cos(rad(45)) * (gx - fp_frontHipX) - Math.Sin(rad(45)) * (gy - fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = Math.Sin(rad(45)) * (gx - fp_frontHipX) + Math.Cos(rad(45)) * (gy - fp_frontHipY);
+            lx = Yrt;
+            lz = -1 * Xrt;         
             break;
+            
             case 5:  
             // Middle Left leg
-            f_endLegX[legNumber] = gy - fp_sideHipY;
-            f_endLegZ[legNumber] = -1 * gx ;
+            lx = gy - fp_sideHipY;
+            lz = -1 * gx ;
             break;
+
             case 6:
             // Back Left leg
-            Xrt = cos_m45 * (gx - (-fp_frontHipX)) - sin_m45 * (gy - fp_frontHipY);  // rotated (Xg,Yg)
-            Yrt = sin_m45 * (gx - (-fp_frontHipX)) + cos_m45 * (gy - fp_frontHipY);
-            f_endLegX[legNumber] = Yrt;
-            f_endLegZ[legNumber] = -1* Xrt;        
+            Xrt = Math.Cos(rad(-45)) * (gx + fp_frontHipX) - Math.Sin(rad(-45)) * (gy - fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = Math.Sin(rad(-45)) * (gx + fp_frontHipX) + Math.Cos(rad(-45)) * (gy - fp_frontHipY);
+            lx = Yrt;
+            lz = -1* Xrt;        
             break;
-         */
+         
             default:
+            lx = 0;        // give a vague hint of an error
+            ly = 0;
+            lz = 0;
             return ;
          }
          return ;
-      }  
+      }  // private void transGlobalToLocal( 
 
+      // translate local coords into global coords for a specified leg
+
+      public void transLocalToGlobal(int leg, double lx, double ly, double lz, ref double gx, ref double gy, ref double gz)
+      {
+         gz = ly;        // height off floor is easy. 
+         switch (leg)
+         {
+            case 1:
+            // Front Right leg
+            gx = f_hipX[leg] + lx * Math.Cos(rad(45)) + lz * Math.Cos(rad(45));
+            gy = f_hipY[leg] - lx * Math.Cos(rad(45)) + lz * Math.Cos(rad(45));
+            break;
+
+            case 2:
+            // Middle Right leg
+            gx = f_hipX[leg] + lz;
+            gy = f_hipY[leg] - lx;
+            break;
+
+            case 3:
+            // Back Right leg
+            gx = f_hipX[leg] - lx * Math.Cos(rad(45)) + lz * Math.Cos(rad(45));
+            gy = f_hipY[leg] - lx * Math.Cos(rad(45)) - lz * Math.Cos(rad(45));
+            break;
+
+            case 4:
+            // Front Left leg
+            gy = f_hipX[leg] + lx * Math.Cos(rad(45)) - lz * Math.Cos(rad(45));
+            gy = f_hipY[leg] + lx * Math.Cos(rad(45)) + lz * Math.Cos(rad(45));
+            break;
+
+            case 5:
+            // Middle Left leg
+            gx = f_hipX[leg] - lz;
+            gy = f_hipY[leg] + lx;
+            break;
+
+            case 6:
+            // Back Left leg
+            gx = f_hipX[leg] - lx * Math.Cos(rad(45)) - lz * Math.Cos(rad(45));
+            gy = f_hipY[leg] + lx * Math.Cos(rad(45)) - lz * Math.Cos(rad(45));
+            break;
+
+            default:
+            break;
+         }
+         return;
+      }   // public transLocalToGlobal
+
+      // setupForScript - Setup preparations for processing the script file
+      // called from script.getSrcContent()
+
+      public void setupForScript()
+      {
+         // define locations of each leg's hip, in global coordinates
+         
+         f_hipX[1] = 8.87;  f_hipY[1] = -5.05;     // global coordinates for hip for each leg    
+         f_hipX[2] =   0 ;  f_hipY[2] = -6.94;
+         f_hipX[3] =-8.87;  f_hipY[3] = -5.05;
+         f_hipX[4] = 8.87;  f_hipY[4] =  5.05;
+         f_hipX[5] =   0 ;  f_hipY[5] =  6.94;
+         f_hipX[6] =-8.87;  f_hipY[6] =  5.05;
+
+         double localHomeX = 13.78 ;
+         double localHomeY = -10.60 ;;
+         double localHomeZ = 0 ;
+
+         // a "move to home" command is added to start of script so we have a known starting point
+         // ...based on that, we can fill in the current toe locations (after that command is executed)
+
+         for(leg = 1; leg <= 6; leg++)
+         {
+            legLocX[leg] = localHomeX;  // the local coords are same for each leg, being local and all
+            legLocY[leg] = localHomeY;
+            legLocZ[leg] = localHomeZ;
+
+            // now translate these to global coords. We'll track current position in both coord systems
+            transLocalToGlobal( leg, legLocX[leg], legLocY[leg], legLocZ[leg], ref legGloX[leg], ref legGloY[leg], ref legGloZ[leg]);
+
+         }  //  for(legAbsX = 1
+
+      }  //  public void setupForScript()
 
       /// <summary>
       /// Transform source file lines to output lines.
@@ -304,6 +399,12 @@ namespace HexbotCompiler
          //newLine = "send(\"NEW_FLOW\")";
          //outLines[outIndex] = newLine;
          //outIndex++;
+
+         // force out a move to home position command, so we have a known starting point
+         //  ... which will be used to initialize internal variables
+         newLine = "send(\"Flow, 1,MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
+         outLines[outIndex] = newLine;
+         outIndex++;
          foreach(string line in srcLines)
          {
             var parse = line.Split(' ', 2);
@@ -547,8 +648,9 @@ namespace HexbotCompiler
          var mqttx = new fxFile(); // Object reference to MQTTfx file. 
          string[] scriptArray = new string[200]; // Content of transformed script file.
          string[] templateArray = new string[200]; // Content of transformed template file.  
-         template.srcFileName = "template.txt";      
-         Console.Clear();
+         template.srcFileName = "template.txt";
+         // leave complier warnings on screen
+         //Console.Clear();
          scriptArray = script.getXfrmContent(); // Get transformed script file content.
          templateArray = template.getXfrmContent(); // Get transformed template file content.
          mqttx.create(scriptArray, templateArray); // Create MQTTfx file.
