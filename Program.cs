@@ -198,6 +198,9 @@ namespace HexbotCompiler
       double fp_frontHipY = 5.04750F;
       double fp_sideHipX = 0;
       double fp_sideHipY = 6.9423F;
+      public int[] legMask = new int[7];     // binary mask that selects a particular leg
+      public int[] legGroup = new int[27];   // definition of legGroups. index is letter of the alphabet,
+                                             // value is bit encoded legs that are present in group
 
       /// <summary>
       /// Puts each line of the script file into an element of a string array.
@@ -382,7 +385,31 @@ namespace HexbotCompiler
             // now translate these to global coords. We'll track current position in both coord systems
             transLocalToGlobal( leg, legLocX[leg], legLocY[leg], legLocZ[leg], ref legGloX[leg], ref legGloY[leg], ref legGloZ[leg]);
 
+            // and initialize the masks that select the bit representing a leg in the legGroup
+            legMask[leg] = Convert.ToInt32( Math.Pow(2, (leg - 1) ));
+
          }  //  for(legAbsX = 1
+         for( int i = 1; i <= 26; i++)   // initialize the 26 leg groups to having no members
+         {
+            legGroup[i] = 0 ;
+         } // for( int i = 1;
+         // now fill in the default groups
+         // define symbolic names for the binary mask for each lef for clarity
+         int leg1 = 1;
+         int leg2 = 2;
+         int leg3 = 4;
+         int leg4 = 8;
+         int leg5 = 16;
+         int leg6 = 32;
+
+         legGroup[1] = leg1 + leg2 + leg3 + leg4 + leg5 + leg6;   // a = 1 = all legs
+         legGroup[2] = leg3 + leg6;                               // b = 2 = back legs
+         legGroup[6] = leg1 + leg4;                               // f = 6 = front legs
+         legGroup[12]= leg4 + leg5 + leg6;                        // l = 12 = left legs
+         legGroup[18]= leg1 + leg2 + leg3;                        // r = 18 = right legs
+         legGroup[5] = leg2 + leg4 + leg6;                        // e = 5 = even numbered legs
+         legGroup[15]= leg1 + leg3 + leg5;                        // o = 15 = odd numbered legs
+         legGroup[13]= leg2 + leg5;                               // m = 13 = middle legs
 
       }  //  public void setupForScript()
 
@@ -444,7 +471,7 @@ namespace HexbotCompiler
                   int legNum = int.Parse(leg);
                   if(legNum < 0 || legNum > 6)        // range check given leg number
                   {
-                     Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is invalid");
+                     Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is an invalid number");
                      newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal lg number: " + legNum;
                      outLines[outIndex] = newLine;
                      outIndex++;
