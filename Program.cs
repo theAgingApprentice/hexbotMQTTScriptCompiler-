@@ -193,6 +193,7 @@ namespace HexbotCompiler
       private double[] legLocX = new double[7], legLocY = new double[7], legLocZ = new double[7];
       public double[] f_hipX = new double[7], f_hipY = new double[7];
       int leg;       // often used as a loop index
+      //string newLine;
 
       double fp_frontHipX = 3.82739F + 7.13528F * .707107F;  // = 8.872796
       double fp_frontHipY = 5.04750F;
@@ -201,6 +202,10 @@ namespace HexbotCompiler
       public int[] legMask = new int[7];     // binary mask that selects a particular leg
       public int[] legGroup = new int[27];   // definition of legGroups. index is letter of the alphabet,
                                              // value is bit encoded legs that are present in group
+         double localHomeX ;
+         double localHomeY ;
+         double localHomeZ ;
+
 
       /// <summary>
       /// Puts each line of the script file into an element of a string array.
@@ -355,6 +360,24 @@ namespace HexbotCompiler
          return;
       }   // public transLocalToGlobal
 
+            public void doDoit(int tmr)       // the doit command processing is done if there is a doit command in the script
+      {                                // but also implicitly from some commands like MoveToHomePosition
+         string sendCmd = "send(\"Flow,"; // First part of send command. 
+         string macro = "MLC"; // Type of send command.
+         string moveStright = "10,0,0,0"; // Only support move toe in straight line for now.                
+         string newLine = sendCmd + tmr + "," + macro + "," + moveStright;
+         // now output 3 numbers representing local coords, for each leg
+         for(int l=1; l<=6; l++)
+         {
+            newLine += " ," + legLocX[l].ToString();   // append X value
+            newLine += "," + legLocY[l].ToString();   // append Y value
+            newLine += "," + legLocZ[l].ToString();   // append Z value
+         }  // for l=
+         outLines[outIndex] = newLine + "\")";
+         outIndex++;
+      } // public void doDoit() 
+
+
       // setupForScript - Setup preparations for processing the script file
       // called from script.getSrcContent()
 
@@ -369,9 +392,9 @@ namespace HexbotCompiler
          f_hipX[5] =   0 ;  f_hipY[5] =  6.94;
          f_hipX[6] =-8.87;  f_hipY[6] =  5.05;
 
-         double localHomeX = 13.78 ;
-         double localHomeY = -10.60 ;;
-         double localHomeZ = 0 ;
+         localHomeX = 13.78 ;      // by definition, local coords for home position are the same for all legs
+         localHomeY = -10.60 ;
+         localHomeZ = 0 ;
 
          // a "move to home" command is added to start of script so we have a known starting point
          // ...based on that, we can fill in the current toe locations (after that command is executed)
@@ -394,7 +417,8 @@ namespace HexbotCompiler
             legGroup[i] = 0 ;
          } // for( int i = 1;
          // now fill in the default groups
-         // define symbolic names for the binary mask for each lef for clarity
+         // define symbolic names for the binary mask for each leg for clarity
+         // note also the array legMask[l] specifies the binary mask for leg "l"
          int leg1 = 1;
          int leg2 = 2;
          int leg3 = 4;
@@ -420,12 +444,7 @@ namespace HexbotCompiler
       /// <returns>null. Does not return anything.</returns>
       public void transformSrc()      // we're in scriptFile class
       {
-         string tmr = "1000"; // How long to allow for move in ms.
          string newLine = "";
-         // following removed, as its done in the template file
-         //newLine = "send(\"NEW_FLOW\")";
-         //outLines[outIndex] = newLine;
-         //outIndex++;
 
          // force out a move to home position command, so we have a known starting point
          //  ... which will be used to initialize internal variables
@@ -434,26 +453,42 @@ namespace HexbotCompiler
          outIndex++;
          foreach(string line in srcLines)
          {
+                     
+//   Console.WriteLine($"<script.transformSrc> processing script line: {line} ");
+
             var parse = line.Split(' ', 2);
             var cmd = parse[0].Trim();  
+// ========================================================================================================= "symdef"
             if(cmd == "symdef")
             {
                newLine = "// " + line + " // symdef syntax not yet implemented in compiler.";
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
+// ===================================================================================================== "MoveToHomePosition"
             else if(cmd == "MoveToHomePosition")
             {
-               newLine = "send(\"Flow," + tmr + ",MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
-               outLines[outIndex] = newLine;
-               outIndex++;
+               for(leg = 1; leg <= 6; leg++)
+               {
+                  legLocX[leg] = localHomeX;  // the local coords are same for each leg, being local and all
+                  legLocY[leg] = localHomeY;
+                  legLocZ[leg] = localHomeZ;
+
+                  // now translate these to global coords. We'll track current position in both coord systems
+                  transLocalToGlobal( leg, legLocX[leg], legLocY[leg], legLocZ[leg], ref legGloX[leg], ref legGloY[leg], ref legGloZ[leg]);
+               }  //  for(leg = 1
+
+               doDoit(500);     // force a doit command with a time interval of 500 ( its a quick servo jump anyway)
+
             } // if
+// ========================================================================================================== "command"
             else if(cmd == "command")
             {
                newLine = "// " + line + " // command syntax not yet implemented in compiler.";
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
+// ====================================================================================================== "MoveRelHomeLocal"
             else if(cmd == "MoveRelHomeLocal")
             {
                
@@ -480,6 +515,51 @@ namespace HexbotCompiler
                   else
                   {
                      // update the toe position for the specified leg as requested
+                     legLocX[legNum] = localHomeX + Convert.ToDouble(x);
+                     legLocY[legNum] = localHomeY + Convert.ToDouble(y);
+                     legLocZ[legNum] = localHomeZ + Convert.ToDouble(z);
+                     
+                     // now update the equivalent global coordinates
+                     transLocalToGlobal(legNum, legLocX[legNum], legLocY[legNum], legLocZ[legNum], ref legGloX[legNum], ref legGloY[legNum], ref legGloZ[legNum]);
+
+                  } // else legNum check
+               
+               } // try
+               catch (FormatException e)
+               {
+                  Console.WriteLine($"ERROR transforming script file. Parsing leg number caused {e.Message}");
+               } // catch            
+            } // if
+
+// ====================================================================================================== "MoveRelLastLocal"
+// move leg (or leg group) an offset in the x, y and z arguments from the last (i.e. current) leg position
+            else if(cmd == "MoveRelLastLocal")
+            {
+               // this code largely copied from MoveRelHomeLocal case  
+               var arg = parse[1].Split(',', 4);
+               var leg = arg[0].Trim();
+               var x = arg[1].Trim();
+               var y = arg[2].Trim();
+               var z = arg[3].Trim(); 
+               if(z.EndsWith(","))
+               {
+                  z = z.Remove(z.Length - 1);
+               } // if
+
+               try
+               {
+                  int legNum = int.Parse(leg);
+                  if(legNum < 0 || legNum > 6)        // range check given leg number
+                  {
+                     Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is an invalid number");
+                     newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal leg number: " + legNum;
+                     outLines[outIndex] = newLine;
+                     outIndex++;
+                     break;
+                  }
+                  else
+                  {
+                     // update the toe position for the specified leg as requested
                      legLocX[legNum] += Convert.ToDouble(x);
                      legLocY[legNum] += Convert.ToDouble(y);
                      legLocZ[legNum] += Convert.ToDouble(z);
@@ -495,29 +575,17 @@ namespace HexbotCompiler
                   Console.WriteLine($"ERROR transforming script file. Parsing leg number caused {e.Message}");
                } // catch            
             } // if
+
+
+// ========================================================================================================== "Doit"
             else if(cmd == "Doit")
             {
-               // the DO_FLOW command is sent once, at end of flow commands, by a template file entry
-               // newLine = "send(\"FLOW,49,50\")";
-               //outLines[outIndex] = newLine;
-               //outIndex++;
+               // get the time interval from the doit command line
+               var arg = parse[1].Split(',', 4);
+               var interval = arg[0].Trim();
+               int interval1 = int.Parse(interval);
 
-               // eventually, the doit command will output a move command like MLRH that performs
-               // all leg moves requested since last DOIT, and those move commands won't generate output
-
-               string sendCmd = "send(\"Flow,"; // First part of send command. 
-               string macro = "MLC"; // Type of send command.
-               string moveStright = "10,0,0,0"; // Only support move toe in straight line for now.                
-               newLine = sendCmd + tmr + "," + macro + "," + moveStright;
-               // now output 3 numbers representing local coords, for each leg
-               for(int l=1; l<=6; l++)
-               {
-                  newLine += " ," + legLocX[l].ToString();   // append X value
-                  newLine += "," + legLocY[l].ToString();   // append Y value
-                  newLine += "," + legLocZ[l].ToString();   // append Z value
-               }  // for l=
-               outLines[outIndex] = newLine + "\")";
-               outIndex++;
+               doDoit(interval1);   // call common routine for doit processing
             } // if
             else
             {
