@@ -10,6 +10,7 @@ copy out("Parameter parameter set up complete");
 copy return action;
 copy }
 copy function send(cmd){
+copy out(cmd);      // display command in MQTT console as its downloaded to bot
 copy mqttManager.publish(mybot, cmd);
 copy Thread.sleep(200); 
 copy }
