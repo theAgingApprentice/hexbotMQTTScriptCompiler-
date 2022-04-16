@@ -587,6 +587,89 @@ namespace HexbotCompiler
 
                doDoit(interval1);   // call common routine for doit processing
             } // if
+
+// ====================================================================================================== "CycleStart"
+            else if(cmd == "CycleStart")
+            {
+               // the CycleStart command is used to define the start of a series of flow commands (a cycle)
+               //  that will be repeated a number of times using the ExecuteCycle command
+               // Format: CycleStart name
+               //   where name is a single digit that identifies the cycle. (multiple cycles allowed)
+
+               // get the numeric name of the cycle from the CycleStart command line
+               var arg = parse[1].Split(',', 4);
+               var cycleName = arg[0].Trim();
+               int cycleName1 = int.Parse(cycleName);
+
+               string sendCmd = "send(\"Flow,0,MCS," ; // First part of send command. MCS = Mark Cycle Start
+               string cycleName2 = Convert.ToString(cycleName1); // append the numeric name of the cycle
+               sendCmd = sendCmd + cycleName2 + ",0,0,0\")" ;        // tail end of MCS flow command
+
+               outLines[outIndex] = sendCmd ;                  // and store the MCS flow command in the output array
+               outIndex++;
+
+            } // if(cmd = )
+
+// ====================================================================================================== "CycleEnd"
+            else if(cmd == "CycleEnd")
+            {
+               // the CycleEnd command is used to define the end of a series of flow commands (a cycle)
+               //  that will be repeated a number of times using the ExecuteCycle command
+               // Format: CycleEnd name
+               //   where name is a single digit that identifies the cycle. (multiple cycles allowed)
+
+               // get the numeric name of the cycle from the CycleEnd command line
+               var arg = parse[1].Split(',', 4);
+               var cycleName = arg[0].Trim();
+               int cycleName1 = int.Parse(cycleName);
+
+               string sendCmd = "send(\"Flow,0,MCE," ;            // First part of send command. MCE = Mark Cycle End
+               string cycleName2 = Convert.ToString(cycleName1);  // append the numeric name of the cycle
+               sendCmd = sendCmd + cycleName2 + ",0,0,0\")" ;     // and tail end of MCS flow command
+
+               outLines[outIndex] = sendCmd ;                     // and store the MCS flow command in the output array
+               outIndex++;
+
+            } // if(cmd = )
+
+// ====================================================================================================== "ExecuteCycle"
+            else if(cmd == "ExecuteCycle")
+            {
+               // the ExecuteCycle command is used to execute a previously defined series of flow commands (a cycle)
+               // Format: ExecuteCycle name, reps
+               //   where name is a single digit that identifies the cycle. (multiple cycles allowed)
+               //     and reps is the number of repetitions
+
+               // get the numeric name of the cycle from the ExecuteCycle command line
+               var arg = parse[1].Split(',', 4);
+               var cycleName = arg[0].Trim();
+               int cycleName1 = int.Parse(cycleName);
+
+               // get the repetition count from the ExecuteCycle command line
+               var reps  = arg[1].Trim();
+               int reps1 = int.Parse(reps);
+
+               string sendCmd = "send(\"Flow,0,DC," ; // First part of send command. DC = Do Cycle
+               sendCmd = sendCmd + Convert.ToString(cycleName1) + "," + Convert.ToString(reps1); // append cycle name and rep count
+               sendCmd = sendCmd + ",0,0,0\")" ;        // and tail end of MCS flow command
+
+               outLines[outIndex] = sendCmd ;                  // and store the MCS flow command in the output array
+               outIndex++;
+
+            } // if(cmd = )
+
+
+/*  command handler template
+            else if(cmd == "NewCmd")
+            {
+               // the NewCmd command is used for...
+
+               // command handling, likely adding entries to outLines array...
+                  outLines[outIndex] = newLine + "\")";
+                  outIndex++;
+
+            } // if(cmd = )
+*/
             else
             {
                Console.WriteLine($"ERROR - command {cmd} in file {srcFileName} is unknown.");
