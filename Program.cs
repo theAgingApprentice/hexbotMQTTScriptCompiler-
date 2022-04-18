@@ -20,7 +20,7 @@ namespace HexbotCompiler
    /// </item>
    /// </list>
    /// </summary>
-   class templateFile
+   public class templateFile
    {
       const int MAX_SIZE = 200; // Maximum file size  
       private string[] srcLines = new string[MAX_SIZE]; // Holds lines from template source file.
@@ -28,6 +28,12 @@ namespace HexbotCompiler
       int outIndex = 0; // Index used for tracking lines translated. 
       public string srcFileName = "template.txt";
       private string robotName = "";
+
+      public string[] symNames = new string[20];    // single character name for a symbol like $H
+      public string[] symStrings = new string[20];  // string to be substituted for name with same index
+      public string[] symLines = new string[100];  // holds lines from symbols file, including comments
+      public int symCount = 0;
+
       /// <summary>
       /// Puts each line of the template file into an element of a string array.
       /// <summary>
@@ -35,7 +41,7 @@ namespace HexbotCompiler
       /// <returns>null</returns>
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
 
-            public void getSrcContent()      // we're in templateFile class
+      public void getSrcContent()      // we're in templateFile class
       {
          if (File.Exists(srcFileName)) 
          {
@@ -54,6 +60,12 @@ namespace HexbotCompiler
          } // else
       } // getSrcContent()
 
+      // following routines are duplicated from script object to avoid challenging cross object method calls
+
+      // test these in script, then recopy working code here for translateSymbols and symLookup
+      
+      
+
       /// <summary>
       /// Transform source file lines to output lines.
       /// <summary>
@@ -62,7 +74,7 @@ namespace HexbotCompiler
       public void transformSrc()      // we're in templateFile class
       {
          string newLine = "";
-         System.Console.WriteLine($"Transforming template source file to output strings.");
+         // System.Console.WriteLine($"Transforming template source file to output strings.");
          bool invalidInput = true;
          while(invalidInput)
          {
@@ -82,8 +94,18 @@ namespace HexbotCompiler
                invalidInput = false;
             } // if
          } // while
-         foreach(string line in srcLines)
+         foreach(string rawLine in srcLines)
          {
+            // before we do any processing on the line, do symbol substitution
+            // for example, if the line contains $H, replace it with the value for H that was in the symbol file
+            // (at this point the symbol file has been processed into arrays symNames and symStrings, for symCount symbols)
+            
+            string line = rawLine;        // we need a modifyable copy of the original line
+
+            // following line is problematic. the translateSymbols routine and related data
+            //    is in the script object,  and I can't come up with a way to call it.
+            
+//            line = translateSymbols(line);       // we're in template object
             var parse = line.Split (' ', 2);
             var cmd = parse[0].Trim();  
             var text = parse[1].Trim();     
@@ -143,6 +165,8 @@ namespace HexbotCompiler
          } // foreach()
       } // transformSrc()
 
+      
+
       /// <summary>
       /// Displays the content of the source template file to the console.
       /// <summary>
@@ -180,7 +204,7 @@ namespace HexbotCompiler
    /// </item>
    /// </list>
    /// </summary>
-   class scriptFile
+   public class scriptFile
    {
       const int MAX_SIZE = 200; // Maximum file size  
       private string[] srcLines = new string[MAX_SIZE]; // Holds lines from script source file.
@@ -192,7 +216,13 @@ namespace HexbotCompiler
       // arrays to track running local locations of 6 legs, each with X, Y and Z
       private double[] legLocX = new double[7], legLocY = new double[7], legLocZ = new double[7];
       public double[] f_hipX = new double[7], f_hipY = new double[7];
-      int leg;       // often used as a loop index
+      public string[] symNames = new string[20];    // single character name for a symbol like $H
+      public string[] symStrings = new string[20];  // string to be substituted for name with same index
+      public string[] symLines = new string[100];  // holds lines from symbols file, including comments
+      public int symCount = 0;
+//      public string tempLine = " ";    // trying to appease compiler
+           int leg;       // often used as a loop index
+
       //string newLine;
 
       double fp_frontHipX = 3.82739F + 7.13528F * .707107F;  // = 8.872796
@@ -215,7 +245,7 @@ namespace HexbotCompiler
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
       public void getSrcContent()      // we're in scriptFile class
       {
-         // some setup stuff for script processing
+         // some setup stuff for script processing, including symbol definitions from symbols.txt
          setupForScript();
 
          bool scriptFileNotFound  = true;
@@ -360,7 +390,7 @@ namespace HexbotCompiler
          return;
       }   // public transLocalToGlobal
 
-            public void doDoit(int tmr)       // the doit command processing is done if there is a doit command in the script
+      public void doDoit(int tmr)       // the doit command processing is done if there is a doit command in the script
       {                                // but also implicitly from some commands like MoveToHomePosition
          string sendCmd = "send(\"Flow,"; // First part of send command. 
          string macro = "MLC"; // Type of send command.
@@ -437,6 +467,53 @@ namespace HexbotCompiler
 
       }  //  public void setupForScript()
 
+
+      // symLookup(name) - look up a specified symbol's substitution string
+      //
+      // before this routine is called, the disk file symbols.txt has been processed to produce the following
+      //   symCount - the number of symbols that were defined
+      //   symNames[] - the uppercase single letters that are the symbol names
+      //   sysStrings[] - the substitution string for the symbol name with the same array index
+
+      public string symLookup(string name)   // look up argument name, and return its string (in Scriptfile class)
+      {
+            if(symCount == 0) // if we had no symbols defined..
+            {
+               return "";    // return the null string
+            } // if(symCount == 0) 
+            for( int j=0; j<symCount; j++)   // scan through all symbol names, seeking a match
+            {
+               // Console.WriteLine($"<symLookup> j,symNames[j];name: {j}, ~{symNames[j]}~,  ~{name}~ ");
+               if(symNames[j] == name.ToUpper())   // if we found one that matched the name we were given
+               { 
+                  return symStrings[j];   // return the corresponding string
+               }
+            } // for( int j=0; j<symCount; j++)
+            return "";// there were symbols in table, but none matched
+      } // void symLookup(string name)
+      
+      // translateSymbols( line) - replace any symbols in the form $X in line, with string from symStrings[]
+      // called at beginning of per line processing of template and script
+
+      public string translateSymbols(string lin)   // do symbol substution, returning expanded line (in Scriptfile class)
+      {  
+         int symLoc;
+         string symString = "";  // also flags substitution was done if it ends up non-blank
+         for (int i=1; i<=4; i++)      // substitute up to 4 symbols on the same line
+         {
+            if(lin.Contains("$"))     // a symbol is denoted by using a $ prefix to its name
+            {
+               symLoc = lin.IndexOf("$");  // location of $ in line (1st position is zero)
+               string symName = lin.Substring(symLoc+1, 1); // the following char is the symbol name
+               symString = symLookup(symName);    // find its corresponding substitution string
+               lin = lin.Substring(0, symLoc) + symString + lin.Substring(symLoc+2); //rebuild line doing substitution                              Console.WriteLine($"---line={line}");
+            } // if line.contains $
+         }// for (int i=1; i<=4; i++)
+         // if(symString != "") {Console.WriteLine($"---translated line={lin}");}
+         return lin; // returned line has up to 4 symbols substituted
+
+      } // string translateSymbols(string line)
+
       /// <summary>
       /// Transform source file lines to output lines.
       /// <summary>
@@ -446,16 +523,46 @@ namespace HexbotCompiler
       {
          string newLine = "";
 
+         // read symbol definitions used in template and script files
+
+         symCount = 0;       // initially no symbols have been defined
+         if(File.Exists("symbols.txt")) 
+         {
+            symLines = System.IO.File.ReadAllLines("symbols.txt");
+            foreach(string line in symLines)
+            {
+               if( line == "" | line.StartsWith("/") | line.StartsWith(" ") )
+               {
+                  // if line is a comment, or empty, or starts with a space, ignore it
+               }  // if( line != ""...
+               else  // otherwise it's a symbol definition
+               {
+               var parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
+               symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
+               symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
+               symCount ++ ;        // count one more symbol
+
+               } // else // if( line != ""...
+            } // foreach(string line in srcLines)
+         } // if File.Exists ("symbols.txt")
+
+         // OK, now on to the script transform processing...
          // force out a move to home position command, so we have a known starting point
          //  ... which will be used to initialize internal variables
          newLine = "send(\"Flow, 1,MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
          outLines[outIndex] = newLine;
          outIndex++;
-         foreach(string line in srcLines)
+         foreach(string rawLine in srcLines)
          {
-                     
-//   Console.WriteLine($"<script.transformSrc> processing script line: {line} ");
+            // before we do any processing on the line, do symbol substitution
+            // for example, if the line contains $H, replace it with the value for H that was in the symbol file
+            // (at this point the symbol file has been processed into arrays symNames and symStrings, for symCount symbols)
+            
+            string line = rawLine;        // we need a modifyable copy of the original line
+            line = translateSymbols(line);       // we're in script object
 
+   // Console.WriteLine($"<script.transformSrc> line before: {rawLine} ");
+   // Console.WriteLine($"<script.transformSrc> line  after: {line} ");
             var parse = line.Split(' ', 2);
             var cmd = parse[0].Trim();  
 // ========================================================================================================= "symdef"
@@ -808,8 +915,8 @@ namespace HexbotCompiler
       /// <returns>null</returns>
       static void Main(string[] args)
       {
-         var template = new templateFile(); // Object reference to template file.
          var script = new scriptFile(); // Object reference to script file.
+         var template = new templateFile(); // Object reference to template file.
          var mqttx = new fxFile(); // Object reference to MQTTfx file. 
          string[] scriptArray = new string[200]; // Content of transformed script file.
          string[] templateArray = new string[200]; // Content of transformed template file.  

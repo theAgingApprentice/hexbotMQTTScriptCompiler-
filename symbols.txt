@@ -1,0 +1,12 @@
+/ test symbol template (next line is blank)
+
+/ comment with continuation starting with a space character
+ so I can drone
+ on in extended comments
+
+/and now we actually define some symbols: h,i and L
+h Hexbot3C61054ADD98
+i substituton string with a blank
+L 5
+/ for multi -symbol translate test
+x 4

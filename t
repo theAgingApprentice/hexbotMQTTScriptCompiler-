@@ -1,0 +1,17 @@
+symdef BotID Hexbot3C61054ADD98
+MoveToHomePosition
+CycleStart 1
+MoveRelHomeLocal $L, $X, 4, 0,
+Doit 500
+MoveRelLastLocal $l, 4, 0, 0,
+Doit 500
+MoveRelLastLocal 6, 0, 0, -4,
+Doit 500
+MoveRelLastLocal 6, 0, 0, 4,
+Doit 500
+MoveRelHomeLocal 6, -4, 0, 0,
+Doit 500
+MoveRelHomeLocal 6, 0, -4, 0,
+Doit 500
+CycleEnd 1
+ExecuteCycle 1,4
