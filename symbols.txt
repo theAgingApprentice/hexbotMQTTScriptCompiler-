@@ -1,0 +1,27 @@
+/ test symbol template (next line is blank)
+
+/ comment with continuation starting with a space character
+ so I can drone on
+ in extended comments
+
+/and now we actually define some symbols: 
+/ H is the name of the robot, for MQTT purposes
+ Andrew: Hexbot94B97E5F4A40
+ Doug:   Hexbot3C61054ADD98
+H Hexbot3C61054ADD98
+
+/ input file location, including relative path
+I scripts\test-from-folder.txt
+
+/ output file location, including absolute path
+O C:\Users\DougElliott\AppData\Local\MQTT-FX\scripts\01__hb-test-from-folder.js
+
+/ parameterized leg number that will be tested by resulting js code
+L 5
+
+/ number of test cycles to repeat (plus the initial one)
+C 4
+
+/ time interval in milliseconds for each leg movement
+T 600
+
