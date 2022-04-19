@@ -493,9 +493,9 @@ namespace HexbotCompiler
          // now output 3 numbers representing local coords, for each leg
          for(int l=1; l<=6; l++)
          {
-            newLine += " ," + legLocX[l].ToString();   // append X value
-            newLine += "," + legLocY[l].ToString();   // append Y value
-            newLine += "," + legLocZ[l].ToString();   // append Z value
+            newLine += " ," + Math.Round(legLocX[l],2).ToString();   // append X value
+            newLine += "," + Math.Round(legLocY[l],2).ToString();   // append Y value
+            newLine += "," + Math.Round(legLocZ[l],2).ToString();   // append Z value
          }  // for l=
          outLines[outIndex] = newLine + "\")";
          outIndex++;
