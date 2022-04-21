@@ -4,4 +4,3 @@ MoveRelHomeLocal 1, 0, 2, 0,
 Doit 1000
 MoveRelHomeLocal 1, 0, 0, 0,
 Doit 1000
-MoveToHomePosition
