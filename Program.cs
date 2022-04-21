@@ -332,13 +332,17 @@ namespace HexbotCompiler
          string inFile = symLookup("I");  // see if $I has a definition
          if(inFile != "")     // if there was a non null definition..
          {
-            Console.WriteLine($"   (using predefined input file name: {inFile})");
+            Console.WriteLine($"   (using predefined script file name: {inFile})");
+            if( !File.Exists(inFile))  // if the file named in $I doesn't actually exist
+            {                          // tell user that, and fall back to asking him for filename
+               Console.WriteLine("    ... but it doesn't exist. Ignoring the $I symbol value.");
+            }// if(!File.Exists("symbols.txt"))
          } // if(inFile != "")
 
          bool scriptFileNotFound  = true;
          while(scriptFileNotFound)
          {
-            if(inFile != "")
+            if(inFile != "" & File.Exists(inFile)) // if there's a $I filename that exists
             {
                srcFileName = inFile;
             } // if(inFile != "")
@@ -933,7 +937,7 @@ namespace HexbotCompiler
          {
             if(oFileName != "")       // if there was a filename in the symbol, use it, & overwrite
             {
-               Console.WriteLine($"   (using predefined output file name: {oFileName})");
+               Console.WriteLine($"   (using predefined output MQTT file name: {oFileName})");
                outFile = oFileName;
                invalidInput = false;
             } // if(outFile != "")
