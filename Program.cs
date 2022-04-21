@@ -630,7 +630,8 @@ namespace HexbotCompiler
                symLoc = lin.IndexOf("$");  // location of $ in line (1st position is zero)
                string symName = lin.Substring(symLoc+1, 1); // the following char is the symbol name
                symString = symLookup(symName);    // find its corresponding substitution string
-               lin = lin.Substring(0, symLoc) + symString + lin.Substring(symLoc+2); //rebuild line doing substitution                              Console.WriteLine($"---line={line}");
+               lin = lin.Substring(0, symLoc) + symString + lin.Substring(symLoc+2); //rebuild line doing substitution 
+               // Console.WriteLine($"---line={line}");
             } // if line.contains $
          }// for (int i=1; i<=4; i++)
          // if(symString != "") {Console.WriteLine($"---translated line={lin}");}
@@ -668,7 +669,7 @@ namespace HexbotCompiler
 // ========================================================================================================= "symdef"
             if(cmd == "symdef")
             {
-               newLine = "// " + line + " // symdef syntax not yet implemented in compiler.";
+               newLine = "// " + line + " // symdef replaced by use of symbols.txt file.";
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
