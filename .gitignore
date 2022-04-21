@@ -46,3 +46,8 @@ output.map
 #
 docs/html*
 docs/latex*
+
+#
+# files in main hexbotMQTTScriptCompiler- folder
+#
+symbols.txt
