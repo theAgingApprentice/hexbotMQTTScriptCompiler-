@@ -17,7 +17,7 @@
 / H is the name of the robot, for MQTT purposes
 /    Andrew: Hexbot94B97E5F4A40
 /    Doug:   Hexbot3C61054ADD98
-H Hexbot3C61054ADD98
+H Hexbot3C61054ADD9
 
 / input file location, including relative path
 I scripts\test-from-folder.txt
@@ -33,3 +33,4 @@ C 4
 
 / time interval in milliseconds for each leg movement
 T 600
+

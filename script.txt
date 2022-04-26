@@ -1,4 +1,5 @@
 symdef BotID Hexbot3C61054ADD98
+bad-command with,some,args
 MoveToHomePosition
 MoveRelHomeLocal 1, 0, 2, 0,
 Doit 1000

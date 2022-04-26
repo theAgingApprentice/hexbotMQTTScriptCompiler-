@@ -1,4 +1,3 @@
-symdef BotID Hexbot3C61054ADD98
 MoveToHomePosition
 CycleStart 1
 MoveRelLastLocal $L, 0, 4, 0,
