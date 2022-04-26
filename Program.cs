@@ -33,7 +33,9 @@ namespace HexbotCompiler
       public string[] symStrings = new string[20];  // string to be substituted for name with same index
       public string[] symLines = new string[100];  // holds lines from symbols file, including comments
       public int symCount = 0;
-
+      public string[] errorLines = new string[100]; // holds warning & error messages, one line per array element
+      public int errorNum = 0;   // index into errorLines[] 
+  
       /// <summary>
       /// Puts each line of the template file into an element of a string array.
       /// <summary>
@@ -108,6 +110,18 @@ namespace HexbotCompiler
 
       } // string translateSymbols(string line)
  
+      public string[] getErrors()   // main calls this to get any warnings generated during compilation
+      {
+         // for now, just test returning a string value
+         return errorLines; // array with each error or warning described in one entry
+      } // public string getWarnings()
+
+      public void newError(int lin, string type, string msg)   // add a new error/warning to the list in errorLines[]
+      {
+         errorLines[errorNum] = lin.ToString() + "  " + type + " " + msg;
+         errorNum ++ ;
+         return;
+      } // public void newError
 
       /// <summary>
       /// Transform source file lines to output lines.
@@ -118,25 +132,48 @@ namespace HexbotCompiler
       {
          // first, read symbol definitions used in template and script files
          //  since we made need these symbols while doing the transformation
+         // the symbol file is processed in both the template and the script objects,
+         // but error reporting is only done here in the template
 
-         symCount = 0;       // initially no symbols have been defined
          if(File.Exists("symbols.txt")) 
          {
+            errorNum = 0;       // index into list of errors we accumulate in errorLines[]
+            int symLine = 0;        // line number within symbol file, for error message references
+
             symLines = System.IO.File.ReadAllLines("symbols.txt");
-            foreach(string line in symLines)
+            foreach(string l in symLines)
             {
-               if( line == "" | line.StartsWith("/") | line.StartsWith(" ") )
+               string line = l ;       // create overwritable copy for error recovery
+               symLine ++ ;      // count one more line in the symbol file
+               if( line == "" | line.StartsWith("/") )
                {
                   // if line is a comment, or empty, or starts with a space, ignore it
                }  // if( line != ""...
                else  // otherwise it's a symbol definition
                {
-               var parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
-               symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
-               symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
-               // Console.WriteLine($"symDef, j, symNames[j], symStrings[j] {symCount}, ~{symNames[symCount]}~, ~{symStrings[symCount]}~ ");
-               symCount ++ ;        // count one more symbol
+                  if(line.Length < 2 | !line.Contains(' ')) // if the line is too short or ill formed...
+                  {
+                     // report an error
+                     newError( symLine, "Error:","In symbols.txt: line too short or missing space separator");
+                     line = "- -";  // substitute so that parse[1] will exist nad not cause out of bounds errors
+                  }// if(line.Length < 2 | !line.Contains(' '))
+                  var parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
+                  string sym = parse[0];
+                  if(sym.Length != 1 | !Char.IsLetter(sym,0))  // symbol name must be exactly 1 letter
+                  {
+                     //Symbol name isn't valid
+                     newError( symLine, "Error:", "In symbols.txt file: Symbol name at start of line is not a single letter");
+                     // for now, let things continue, with a strange symbol defined
 
+                  }
+                  if(parse[1].Length == 0)      // if there wasn't a substitution string, give a warning
+                  {
+                     newError(symLine,"Warning:", "In symbols.txt file: substitution string was empty");
+                  } //  if(parse[1].Length == 0)
+                  symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
+                  symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
+                  // Console.WriteLine($"symDef, j, symNames[j], symStrings[j] {symCount}, ~{symNames[symCount]}~, ~{symStrings[symCount]}~ ");
+                  symCount ++ ;        // count one more symbol
                } // else // if( line != ""...
             } // foreach(string line in srcLines)
          } // if File.Exists ("symbols.txt")
@@ -151,7 +188,7 @@ namespace HexbotCompiler
             robotName = symLookup("H");      // see if symbol $H is defined as robot name
             if(robotName != "")              // if there's a defined robot name...
             {                                // use it rather than asking user to supply it
-               Console.WriteLine($"   (using predefined Robot name: {robotName})");
+               Console.WriteLine($"  (using predefined Robot name: {robotName})");
                invalidInput = false;
             } //  if(robotName != "")
             else  // otherwise ask user to supply robot name, or a shortcut
@@ -174,9 +211,11 @@ namespace HexbotCompiler
             } // else
 
          } // while
-
+         int lineNum = 0;                       // line number within template file, for error messages
          foreach(string rawLine in srcLines)
          {
+            lineNum ++;       // count one more line
+
             // before we do any processing on the line, do symbol substitution
             // for example, if the line contains $H, replace it with the value for H that was in the symbol file
             // (at this point the symbol file has been processed into arrays symNames and symStrings, for symCount symbols)
@@ -199,6 +238,7 @@ namespace HexbotCompiler
             } // if
             else if(cmd == "replace")
             {
+               newError(lineNum, "Warning:","Replace command is deprecated. Consider a copy command that references $H" );
 
                if(text == "<myBot>")
                {
@@ -300,8 +340,10 @@ namespace HexbotCompiler
       public string[] symNames = new string[20];    // single character name for a symbol like $H
       public string[] symStrings = new string[20];  // string to be substituted for name with same index
       public string[] symLines = new string[100];  // holds lines from symbols file, including comments
+      public string[] errorLines = new string[100]; // holds warning & error messages, one line per array element
+      int errorNum = 0; // line counter in the accumulating error listing
       public int symCount = 0;
-           int leg;       // often used as a loop index
+      int leg;       // often used as a loop index
 
       //string newLine;
 
@@ -328,11 +370,12 @@ namespace HexbotCompiler
          // some setup stuff for script processing, including symbol definitions from symbols.txt
          setupForScript();
 
+         Console.WriteLine(" ");       // display a blank line to separate dotnet command from compiler output
          // see if input file name was predefind in the $I symbol
          string inFile = symLookup("I");  // see if $I has a definition
          if(inFile != "")     // if there was a non null definition..
          {
-            Console.WriteLine($"   (using predefined script file name: {inFile})");
+            Console.WriteLine($"  (using predefined script file name: {inFile})");
             if( !File.Exists(inFile))  // if the file named in $I doesn't actually exist
             {                          // tell user that, and fall back to asking him for filename
                Console.WriteLine("    ... but it doesn't exist. Ignoring the $I symbol value.");
@@ -568,27 +611,44 @@ namespace HexbotCompiler
          symCount = 0;       // initially no symbols have been defined
          if(File.Exists("symbols.txt")) 
          {
+            int symLine = 0;        // line number within symbol file for error messages
             symLines = System.IO.File.ReadAllLines("symbols.txt");
-            foreach(string line in symLines)
+            foreach(string l in symLines)
             {
-               if( line == "" | line.StartsWith("/") | line.StartsWith(" ") )
+               string line = l ;       // create overwritable copy for error recovery
+               symLine ++ ;      // count one more line in the symbol file
+               if( line == "" | line.StartsWith("/") )
                {
                   // if line is a comment, or empty, or starts with a space, ignore it
                }  // if( line != ""...
                else  // otherwise it's a symbol definition
                {
-               var parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
-               symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
-               symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
-               // Console.WriteLine($"symDef, j, symNames[j], symStrings[j] {symCount}, ~{symNames[symCount]}~, ~{symStrings[symCount]}~ ");
+                  if(line.Length < 2 | !line.Contains(' ')) // if the line is too short or ill formed...
+                  {
+                     // report an error
+                     //newError( symLine, "Error:","In symbols.txt: line too short or missing space separator");
+                     line = "- -";  // substitute so that parse[1] will exist nad not cause out of bounds errors
+                  }// if(line.Length < 2 | !line.Contains(' '))
+                  var parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
+                  string sym = parse[0];
+                  if(sym.Length != 1 | !Char.IsLetter(sym,0))  // symbol name must be exactly 1 letter
+                  {
+                     //Symbol name isn't valid
+                     //newError( symLine, "Error:", "In symbols.txt file: Symbol name at start of line is not a single letter");
+                     // for now, let things continue, with a strange symbol defined
 
-               symCount ++ ;        // count one more symbol
-
+                  }
+                  if(parse[1].Length == 0)      // if there wasn't a substitution string, give a warning
+                  {
+                     // newError(symLine,"Warning:", "In symbols.txt file: substitution string was empty");
+                  }  //  if(parse[1].Length == 0)
+                  symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
+                  symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
+                  // Console.WriteLine($"symDef, j, symNames[j], symStrings[j] {symCount}, ~{symNames[symCount]}~, ~{symStrings[symCount]}~ ");
+                  symCount ++ ;        // count one more symbol
                } // else // if( line != ""...
             } // foreach(string line in srcLines)
          } // if File.Exists ("symbols.txt")
-
-
       }  //  public void setupForScript()
 
 
@@ -639,6 +699,20 @@ namespace HexbotCompiler
 
       } // string translateSymbols(string line)
 
+       public void newError(int lin, string type, string msg)   // add a new error/warning to the list in errorLines[]
+      {
+         errorLines[errorNum] = lin.ToString() + "  " + type + " " + msg;
+         errorNum ++ ;
+         return;
+      } // public void newError
+      /// Transform source file lines to output lines.
+
+      public string[] getErrors()   // main calls this to get any warnings generated during compilation
+      {
+         // for now, just test returning a string value
+         return errorLines; // array with each error or warning described in one entry
+      } // public string getWarnings()
+
       /// <summary>
       /// Transform source file lines to output lines.
       /// <summary>
@@ -646,6 +720,7 @@ namespace HexbotCompiler
       /// <returns>null. Does not return anything.</returns>
       public void transformSrc()      // we're in scriptFile class
       {
+         errorNum = 0;       // index into list of errors we accumulate in errorLines[]
          string newLine = "";
 
          // force out a move to home position command, so we have a known starting point
@@ -653,8 +728,10 @@ namespace HexbotCompiler
          newLine = "send(\"Flow, 1,MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
          outLines[outIndex] = newLine;
          outIndex++;
+         int lineNum = 0;        // line number within script file for error messages
          foreach(string rawLine in srcLines)
-         {
+         { 
+            lineNum++;           // count one more line in script file for error message info
             // before we do any processing on the line, do symbol substitution
             // for example, if the line contains $H, replace it with the value for H that was in the symbol file
             // (at this point the symbol file has been processed into arrays symNames and symStrings, for symCount symbols)
@@ -672,6 +749,7 @@ namespace HexbotCompiler
                newLine = "// " + line + " // symdef replaced by use of symbols.txt file.";
                outLines[outIndex] = newLine;
                outIndex++;
+               newError(lineNum, "Warning:","symdef command is obsolete, replaced by symbols in the symbol.txt file");
             } // if
 // ===================================================================================================== "MoveToHomePosition"
             else if(cmd == "MoveToHomePosition")
@@ -880,10 +958,11 @@ namespace HexbotCompiler
 */
             else
             {
-               Console.WriteLine($"ERROR - command {cmd} in file {srcFileName} is unknown.");
+               // Console.WriteLine($"ERROR - command {cmd} in file {srcFileName} is unknown.");
                newLine = "// COMPILER ERROR! Unknown command in script src file: " + cmd;
                outLines[outIndex] = newLine;
                outIndex++;
+               newError(lineNum,"Error:","Unknown command in script source file: " + cmd);
             } // else
          } // foreach()
       } // transformSrc()
@@ -938,7 +1017,7 @@ namespace HexbotCompiler
          {
             if(oFileName != "")       // if there was a filename in the symbol, use it, & overwrite
             {
-               Console.WriteLine($"   (using predefined output MQTT file name: {oFileName})");
+               Console.WriteLine($"  (using predefined output MQTT file name: {oFileName})");
                outFile = oFileName;
                invalidInput = false;
             } // if(outFile != "")
@@ -1029,16 +1108,65 @@ namespace HexbotCompiler
          var template = new templateFile(); // Object reference to template file.
          var mqttx = new fxFile(); // Object reference to MQTTfx file. 
          string[] scriptArray = new string[200]; // Content of transformed script file.
-         string[] templateArray = new string[200]; // Content of transformed template file.  
+         string[] templateArray = new string[200]; // Content of transformed template file. 
+         string[] scriptErrors = new string[100];  // warning and error messages from script processing
+         string[] templateErrors = new string[100];  // warning and error messages from template processing
          template.srcFileName = "template.txt";
-         // leave complier warnings on screen
+         // leave C Sharp complier warnings on screen
          //Console.Clear();
          string test = script.symLookup("H");
          scriptArray = script.getXfrmContent(); // Get transformed script file content.
          templateArray = template.getXfrmContent(); // Get transformed template file content.
          // get the string for the $O symbol, which is output filename, if it's defined, null otherwise
          string oFile = script.symLookup("O");
-         mqttx.create(scriptArray, templateArray, oFile); // Create MQTTfx file.
+         mqttx.create(scriptArray, templateArray, oFile); // Create MQTTfx file
+
+         scriptErrors = script.getErrors();     // retrieve the list of error messages for the script
+         templateErrors = template.getErrors(); // retrieve the list of error messages for the template
+
+         bool didTemplateTitle = false;         // flag to generate template error title only if needed
+         foreach(string line in templateErrors) // for the list of warnings and errors retrned by template object..
+         {
+            if( line != null)      // ignore unused lines
+            {
+               if(didTemplateTitle == false)    // if we have an error line, but haven't done title...
+               {
+                  Console.WriteLine("--- Errors in Template file --");  // now's the time
+                  didTemplateTitle = true;         // only do title once
+               } // if(didTemplateTitle == false)
+               Console.WriteLine($"  Line {line}");       // array elements are in form "line type message"
+                                                   // line is line number within template file
+                                                   // type is either Warning or Error
+                                                   // message is the diagnostic that was included by the template transformation
+                                                   
+            } // if( line != "")
+
+         } // foreach(string line in templateErrors)
+
+         // and same process for errors in the script file
+
+         bool didScriptTitle = false;         // flag to generate template error title only if needed
+         foreach(string line in scriptErrors) // for the list of warnings and errors retrned by script object..
+         {
+            if(line != null)
+               {
+               if(didScriptTitle == false)    // if we have an error line, but haven't done title...
+               {
+                  Console.WriteLine("--- Errors in Script file ---"); // now's the time
+                  didScriptTitle = true;           // only do title once
+               } // if(didScriptTitle == false)
+               Console.WriteLine($"  Line {line}");       // array elements are in form "line type message"
+                                                   // line is line number within template file
+                                                   // type is either Warning or Error
+                                                   // message is the diagnostic that was included by the template transformation
+            } // if(line != null)
+         } // foreach(string line in templateErrors)
+         if( (didTemplateTitle == false) & (didScriptTitle == false) )     // if there weren't any errors reported
+         {
+               Console.WriteLine("--- Compilation was successful with no warnings or errors ---");
+         } // if( (didTemplateTitle == false) & (didScriptTitle == false) )
+         Console.WriteLine(" ");       // display a blank line to separate compiler messages from next command prompt
+
       } // Main()
    } // class Program
 } // namespace HexbotCompiler

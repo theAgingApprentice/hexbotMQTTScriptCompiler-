@@ -1,6 +1,6 @@
 copy var Thread = Java.type("java.lang.Thread");
 copy function execute() {
-replace <myBot>  
+copy mybot = "$H/commands"
 copy send("NEW_FLOW")
 insert <templateFile>
 copy send("DO_FLOW,49,50")
