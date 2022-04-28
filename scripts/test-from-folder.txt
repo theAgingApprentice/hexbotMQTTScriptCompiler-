@@ -1,8 +1,8 @@
 MoveToHomePosition
 LegGroup x,1,6
 CycleStart 1
-MoveRelLastLocal $L, 0, 4, 0,
-Doit $T
+MoveRelLastLOCAL $L, 0, 4, 0,
+DOIT $T
 MoveRelLastLocal $l, 4, 0, 0,
 Doit $T
 MoveRelLastLocal $L, -4, 0, 0,
