@@ -35,6 +35,7 @@ namespace HexbotCompiler
       public int symCount = 0;
       public string[] errorLines = new string[100]; // holds warning & error messages, one line per array element
       public int errorNum = 0;   // index into errorLines[] 
+      public string[] parse = new string[30];   // for prepForMove call
   
       /// <summary>
       /// Puts each line of the template file into an element of a string array.
@@ -79,7 +80,6 @@ namespace HexbotCompiler
             } // if(symCount == 0) 
             for( int j=0; j<symCount; j++)   // scan through all symbol names, seeking a match
             {
-               // Console.WriteLine($"<symLookup> j,symNames[j];name: {j}, ~{symNames[j]}~,  ~{name}~ ");
                if(symNames[j] == name.ToUpper())   // if we found one that matched the name we were given
                { 
                   return symStrings[j];   // return the corresponding string
@@ -102,10 +102,10 @@ namespace HexbotCompiler
                symLoc = lin.IndexOf("$");  // location of $ in line (1st position is zero)
                string symName = lin.Substring(symLoc+1, 1); // the following char is the symbol name
                symString = symLookup(symName);    // find its corresponding substitution string
-               lin = lin.Substring(0, symLoc) + symString + lin.Substring(symLoc+2); //rebuild line doing substitution                              Console.WriteLine($"---line={line}");
+               lin = lin.Substring(0, symLoc) + symString + lin.Substring(symLoc+2); //rebuild line doing substitution
+               // Console.WriteLine($"---line={line}");
             } // if line.contains $
          }// for (int i=1; i<=4; i++)
-         // if(symString != "") {Console.WriteLine($"---translated line={lin}");}
          return lin; // returned line has up to 4 symbols substituted
 
       } // string translateSymbols(string line)
@@ -154,15 +154,15 @@ namespace HexbotCompiler
                   if(line.Length < 2 | !line.Contains(' ')) // if the line is too short or ill formed...
                   {
                      // report an error
-                     newError( symLine, "Error:","In symbols.txt: line too short or missing space separator");
+                     // newError(symLine,  "Error:", "In symbols.txt: line too short or missing space separator");
                      line = "- -";  // substitute so that parse[1] will exist nad not cause out of bounds errors
                   }// if(line.Length < 2 | !line.Contains(' '))
-                  var parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
+                  string[] parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
                   string sym = parse[0];
                   if(sym.Length != 1 | !Char.IsLetter(sym,0))  // symbol name must be exactly 1 letter
                   {
                      //Symbol name isn't valid
-                     newError( symLine, "Error:", "In symbols.txt file: Symbol name at start of line is not a single letter");
+                     newError(symLine,  "Error:", "In symbols.txt file: Symbol name at start of line is not a single letter");
                      // for now, let things continue, with a strange symbol defined
 
                   }
@@ -172,7 +172,6 @@ namespace HexbotCompiler
                   } //  if(parse[1].Length == 0)
                   symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
                   symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
-                  // Console.WriteLine($"symDef, j, symNames[j], symStrings[j] {symCount}, ~{symNames[symCount]}~, ~{symStrings[symCount]}~ ");
                   symCount ++ ;        // count one more symbol
                } // else // if( line != ""...
             } // foreach(string line in srcLines)
@@ -181,7 +180,6 @@ namespace HexbotCompiler
          // now on to your previously scheduled transform processing
 
          string newLine = "";
-         // System.Console.WriteLine($"Transforming template source file to output strings.");
          bool invalidInput = true;
          while(invalidInput)
          {
@@ -225,26 +223,24 @@ namespace HexbotCompiler
    // if(line != rawLine) {Console.WriteLine($"<template.transformSrc> line before: {rawLine} ");}
    // if(line != rawLine) {Console.WriteLine($"<template.transformSrc> line  after: {line} ");}
 
-            var parse = line.Split (' ', 2);
+            parse = line.Split (' ', 2);
             var cmd = parse[0].Trim();  
             var text = parse[1].Trim();     
             if(cmd == "copy")
             {
                
                newLine = text;
-//               Console.WriteLine($"---> {newLine}");
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
             else if(cmd == "replace")
             {
-               newError(lineNum, "Warning:","Replace command is deprecated. Consider a copy command that references $H" );
+               newError(lineNum,"Warning:", "Replace command is deprecated. Consider a copy command that references $H" );
 
                if(text == "<myBot>")
                {
                   string outLine = "mybot = \"" + robotName + "/commands\""; 
                   newLine = outLine;
-//                  Console.WriteLine($"---> {newLine}"); 
                   outLines[outIndex] = newLine;
                   outIndex++;
                } // if
@@ -261,7 +257,6 @@ namespace HexbotCompiler
             {
                if(text == "<templateFile>")
                {
-//                  Console.WriteLine($"---> {line}"); 
                   newLine = line;
                   outLines[outIndex] = newLine;
                   outIndex++;
@@ -344,6 +339,12 @@ namespace HexbotCompiler
       int errorNum = 0; // line counter in the accumulating error listing
       public int symCount = 0;
       int leg;       // often used as a loop index
+      int groupNum;  // leg group alpha name translated to a number, 1 - 26
+      int legNum;    // used in leg groups
+      public string[] parse = new string[30];   // for prepForMove call
+      double x, y, z;                           // to make prepForMove work
+      int lineNum;   // keeping compiler happy
+      string line = "";
 
       //string newLine;
 
@@ -354,10 +355,13 @@ namespace HexbotCompiler
       public int[] legMask = new int[7];     // binary mask that selects a particular leg
       public int[] legGroup = new int[27];   // definition of legGroups. index is letter of the alphabet,
                                              // value is bit encoded legs that are present in group
-         double localHomeX ;
-         double localHomeY ;
-         double localHomeZ ;
-
+          //public var[] x, y, z 
+      double localHomeX ;
+      double localHomeY ;
+      double localHomeZ ;
+      public double[] globalHomeX = new double[7];   // home position in global coords for 6 legs
+      public double[] globalHomeY = new double[7];
+      public double[] globalHomeZ = new double[7];
 
       /// <summary>
       /// Puts each line of the script file into an element of a string array.
@@ -410,11 +414,16 @@ namespace HexbotCompiler
       } // getSrcContent()
 
       // C# seems to be missing a RADIANS function, so...
-
       double rad(double angle)
       {
          return (Math.PI / 180F) * angle;
       }
+
+      // debugging version of Console.WriteLine(x)
+      public void WC(string x)
+      {
+         Console.WriteLine(x);
+      } //  public void WC(string x)
 
 
       // translate global coordinates to local coordinates for a specified leg
@@ -567,6 +576,31 @@ namespace HexbotCompiler
          localHomeY = -10.60 ;
          localHomeZ = 0 ;
 
+         // global coordinates for home position for each leg
+         globalHomeX[1] =  18.619;     // reference: hexbot/docs/MQTT scripts/creating-flows.odt ...
+         globalHomeY[1] = -14.792;     // ... section 15.1, Global Coordinates of Key Locations, in creating-flows.odt
+         globalHomeZ[1] = -10.595;
+
+         globalHomeX[2] =   0.0;
+         globalHomeY[2] = -20.709;
+         globalHomeZ[2] = -10.595;
+
+         globalHomeX[3] = -18.619;
+         globalHomeY[3] = -14.792;
+         globalHomeZ[3] = -10.595;
+
+         globalHomeX[4] =  18.619;
+         globalHomeY[4] =  14.792;
+         globalHomeZ[4] = -10.595;
+
+         globalHomeX[5] =   0.0;
+         globalHomeY[5] =  20.709;
+         globalHomeZ[5] = -10.595;
+
+         globalHomeX[6] = -18.619;
+         globalHomeY[6] =  14.792;
+         globalHomeZ[6] = -10.595;
+
          // a "move to home" command is added to start of script so we have a known starting point
          // ...based on that, we can fill in the current toe locations (after that command is executed)
 
@@ -580,7 +614,7 @@ namespace HexbotCompiler
             transLocalToGlobal( leg, legLocX[leg], legLocY[leg], legLocZ[leg], ref legGloX[leg], ref legGloY[leg], ref legGloZ[leg]);
 
             // and initialize the masks that select the bit representing a leg in the legGroup
-            legMask[leg] = Convert.ToInt32( Math.Pow(2, (leg - 1) ));
+            legMask[leg] = Convert.ToInt32( Math.Pow(2, (leg) ));
 
          }  //  for(legAbsX = 1
          for( int i = 1; i <= 26; i++)   // initialize the 26 leg groups to having no members
@@ -590,12 +624,13 @@ namespace HexbotCompiler
          // now fill in the default groups
          // define symbolic names for the binary mask for each leg for clarity
          // note also the array legMask[l] specifies the binary mask for leg "l"
-         int leg1 = 1;
-         int leg2 = 2;
-         int leg3 = 4;
-         int leg4 = 8;
-         int leg5 = 16;
-         int leg6 = 32;
+        
+         int leg1 = 2;  // legMask[leg] = 2 raised to the (leg)
+         int leg2 = 4;
+         int leg3 = 8;
+         int leg4 = 16;
+         int leg5 = 32;
+         int leg6 = 64;
 
          legGroup[1] = leg1 + leg2 + leg3 + leg4 + leg5 + leg6;   // a = 1 = all legs
          legGroup[2] = leg3 + leg6;                               // b = 2 = back legs
@@ -626,15 +661,15 @@ namespace HexbotCompiler
                   if(line.Length < 2 | !line.Contains(' ')) // if the line is too short or ill formed...
                   {
                      // report an error
-                     //newError( symLine, "Error:","In symbols.txt: line too short or missing space separator");
+                     newError(symLine,  "Error:", "In symbols.txt: line too short or missing space separator");
                      line = "- -";  // substitute so that parse[1] will exist nad not cause out of bounds errors
                   }// if(line.Length < 2 | !line.Contains(' '))
-                  var parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
+                  parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
                   string sym = parse[0];
                   if(sym.Length != 1 | !Char.IsLetter(sym,0))  // symbol name must be exactly 1 letter
                   {
                      //Symbol name isn't valid
-                     //newError( symLine, "Error:", "In symbols.txt file: Symbol name at start of line is not a single letter");
+                     //newError( symLine,  "Error:", "In symbols.txt file: Symbol name at start of line is not a single letter");
                      // for now, let things continue, with a strange symbol defined
 
                   }
@@ -644,7 +679,6 @@ namespace HexbotCompiler
                   }  //  if(parse[1].Length == 0)
                   symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
                   symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
-                  // Console.WriteLine($"symDef, j, symNames[j], symStrings[j] {symCount}, ~{symNames[symCount]}~, ~{symStrings[symCount]}~ ");
                   symCount ++ ;        // count one more symbol
                } // else // if( line != ""...
             } // foreach(string line in srcLines)
@@ -667,7 +701,6 @@ namespace HexbotCompiler
             } // if(symCount == 0) 
             for( int j=0; j<symCount; j++)   // scan through all symbol names, seeking a match
             {
-               // Console.WriteLine($"<symLookup> j,symNames[j];name: {j}, ~{symNames[j]}~,  ~{name}~ ");
                if(symNames[j] == name.ToUpper())   // if we found one that matched the name we were given
                { 
                   return symStrings[j];   // return the corresponding string
@@ -690,11 +723,9 @@ namespace HexbotCompiler
                symLoc = lin.IndexOf("$");  // location of $ in line (1st position is zero)
                string symName = lin.Substring(symLoc+1, 1); // the following char is the symbol name
                symString = symLookup(symName);    // find its corresponding substitution string
-               lin = lin.Substring(0, symLoc) + symString + lin.Substring(symLoc+2); //rebuild line doing substitution 
-               // Console.WriteLine($"---line={line}");
+               lin = lin.Substring(0, symLoc) + symString + lin.Substring(symLoc+2); //rebuild line doing substitution
             } // if line.contains $
          }// for (int i=1; i<=4; i++)
-         // if(symString != "") {Console.WriteLine($"---translated line={lin}");}
          return lin; // returned line has up to 4 symbols substituted
 
       } // string translateSymbols(string line)
@@ -711,7 +742,82 @@ namespace HexbotCompiler
       {
          // for now, just test returning a string value
          return errorLines; // array with each error or warning described in one entry
-      } // public string getWarnings()
+      } // public string[] getErrors()
+
+      public void prepForMove()     // do standard prepareaion for move command with possible leg group
+      {  // standard move command format: <move-command> leg, x, y, z
+         //  where leg might be number to identify a single leg, or a letter to specify a leg group name
+         //        x, y, z are coordinates or offsets, in local or global coordinates
+         //
+         // This routine processes the leg info:
+         //  if it's a letter, figure the name, and index into the legGroup[] array (A - Z >  1 to 26)
+         //  if it's a number, fake a group containing just that leg as group 0 for consistent processing
+         //
+         // Move commands just need to loop through the legs in the group identified by groupNum for processing
+
+         var arg = parse[1].Split(',', 4);
+         var leg = arg[0].Trim();
+         string legName = leg.ToUpper(); 
+         x = Convert.ToDouble(arg[1].Trim());
+         y = Convert.ToDouble(arg[2].Trim());
+         z = Convert.ToDouble(arg[3].Trim()); 
+         // WC( $" x,y,z: {x}, {y}, {z}");
+
+         // first argument can be alpha leg group name, or numeric leg number
+
+         // if a $ is put in from of leg name, it likely is an undefined symbol, so check for this case
+         if(string.IsNullOrEmpty(legName))     // was leg field empty (maybe after symbol substitution)
+         {
+            newError(lineNum,"  Error:",$"An empty leg number or group was given (bad symbol?): {line}");
+            // substitute leg 1 so follow on code won't fail
+            groupNum = 0;                    // fake a group, using the 0 index that precedes the alpha's in legGroup[]
+            legGroup[groupNum] = legMask[1]; //  make it leg 1
+         }
+         else // if(string.IsNullOrEmpty(legName))  
+         {
+
+            if(Char.IsLetter(Convert.ToString(leg),0) )  // is Leg field a letter, i.e. a group name
+            {  // yes. figure legGroup number from group name letter
+                  groupNum = legName[0] - 64;          // convert ASCII to number. A = x41 > 1
+            } //  if(Char.IsLetter(Convert.ToString(leg),0) )
+            else // if(Char.IsLetter(Convert.ToString(leg),0) )
+            {  // it wasn't a letter. check its a number, then fake group 0 containing just the specified leg
+               groupNum = 0;   // fake a group, using the 0 index that preceded the alpha's in legGroup[]
+               if(!string.IsNullOrEmpty(legName) & legName.All(char.IsDigit))  // is it all digits?
+               {  // yes, safe to parse it as a number
+                  legNum = int.Parse(legName);     // translate text to integer
+                  if(legNum >=1 & legNum <= 6)     // if it's a legal number
+                  {
+                     // fake group 0 containing just the specified leg
+                     legGroup[groupNum] = legMask[legNum];  // and make is a group containing just 1 leg
+                  } // if(legNum >=1 & legNum <= 6)
+                  else
+                  {
+                     newError(lineNum,  "Error",$"Invalid number for leg in: {line}");
+                     // pick a leg so move routines don't get run time errors
+                     legGroup[groupNum] = legMask[1];    // make it leg 1
+                  }
+               } // if(!string.IsNull....
+               else // if(!string.IsNullOrEmpty(legName) & legName.All(char.IsDigit))
+               {
+               newError(lineNum,  "Error",$"Leg identifier is not valid in: {line}");
+               // pick a leg so move routines don't get run time errors
+               legGroup[groupNum] = legMask[1];    //  make it leg 1
+               }
+            } // else // if(Char.IsLetter(Convert.ToString(leg),0) )
+         } // else // if(string.IsNullOrEmpty(legName))    
+      } // public void prepForMove()
+
+/*                     
+            if(legNum < 0 || legNum > 6)        // range check given leg number
+            {
+               Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is an invalid number");
+               newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal lg number: " + legNum;
+               outLines[outIndex] = newLine;
+               outIndex++;
+               break;
+            }
+*/      
 
       /// <summary>
       /// Transform source file lines to output lines.
@@ -728,7 +834,7 @@ namespace HexbotCompiler
          newLine = "send(\"Flow, 1,MLRH,10,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0\")";
          outLines[outIndex] = newLine;
          outIndex++;
-         int lineNum = 0;        // line number within script file for error messages
+         lineNum = 0;        // line number within script file for error messages
          foreach(string rawLine in srcLines)
          { 
             lineNum++;           // count one more line in script file for error message info
@@ -736,12 +842,14 @@ namespace HexbotCompiler
             // for example, if the line contains $H, replace it with the value for H that was in the symbol file
             // (at this point the symbol file has been processed into arrays symNames and symStrings, for symCount symbols)
             
-            string line = rawLine;        // we need a modifyable copy of the original line
+            line = rawLine;        // we need a modifyable copy of the original line
             line = translateSymbols(line);       // we're in script object
+   // WC($"Line={line}");  // display line for debugging purposes
+
    // if(line != rawLine) {Console.WriteLine($"<template.transformSrc> line before: {rawLine} ");}
    // if(line != rawLine) {Console.WriteLine($"<template.transformSrc> line  after: {line} ");}
 
-            var parse = line.Split(' ', 2);
+            parse = line.Split(' ', 2);
             var cmd = parse[0].Trim();  
 // ========================================================================================================= "symdef"
             if(cmd == "symdef")
@@ -749,7 +857,7 @@ namespace HexbotCompiler
                newLine = "// " + line + " // symdef replaced by use of symbols.txt file.";
                outLines[outIndex] = newLine;
                outIndex++;
-               newError(lineNum, "Warning:","symdef command is obsolete, replaced by symbols in the symbol.txt file");
+               newError(lineNum,"Warning:", "symdef command is obsolete, replaced by symbols in the symbol.txt file");
             } // if
 // ===================================================================================================== "MoveToHomePosition"
             else if(cmd == "MoveToHomePosition")
@@ -777,28 +885,10 @@ namespace HexbotCompiler
 // ====================================================================================================== "MoveRelHomeLocal"
             else if(cmd == "MoveRelHomeLocal")
             {
-               
-               var arg = parse[1].Split(',', 4);
-               var leg = arg[0].Trim();
-               var x = arg[1].Trim();
-               var y = arg[2].Trim();
-               var z = arg[3].Trim(); 
-               if(z.EndsWith(","))
+               prepForMove();  // process leg (group or number) and x,y,z from script command line
+               for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
                {
-                  z = z.Remove(z.Length - 1);
-               } // if
-               try
-               {
-                  int legNum = int.Parse(leg);
-                  if(legNum < 0 || legNum > 6)        // range check given leg number
-                  {
-                     Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is an invalid number");
-                     newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal lg number: " + legNum;
-                     outLines[outIndex] = newLine;
-                     outIndex++;
-                     break;
-                  }
-                  else
+                  if((legGroup[groupNum] & legMask[legNum]) != 0)
                   {
                      // update the toe position for the specified leg as requested
                      legLocX[legNum] = localHomeX + Convert.ToDouble(x);
@@ -807,71 +897,91 @@ namespace HexbotCompiler
                      
                      // now update the equivalent global coordinates
                      transLocalToGlobal(legNum, legLocX[legNum], legLocY[legNum], legLocZ[legNum], ref legGloX[legNum], ref legGloY[legNum], ref legGloZ[legNum]);
+                  } // if(legGroup[groupNum] && legMask[i] != 0)
+               } // for( legNum=1; legNum<=6; legNum++)         
+            } // if cmd == "MoveRelHomeLocal")
 
-                  } // else legNum check
-               
-               } // try
-               catch (FormatException e)
-               {
-                  Console.WriteLine($"ERROR transforming script file. Parsing leg number caused {e.Message}");
-               } // catch            
-            } // if
-
-// ====================================================================================================== "MoveRelLastLocal"
-// move leg (or leg group) an offset in the x, y and z arguments from the last (i.e. current) leg position
-            else if(cmd == "MoveRelLastLocal")
+// ====================================================================================================== "MoveRelHomeGlobal"
+            else if(cmd == "MoveRelHomeGlobal")
             {
-               // this code largely copied from MoveRelHomeLocal case  
-               var arg = parse[1].Split(',', 4);
-               var leg = arg[0].Trim();
-               var x = arg[1].Trim();
-               var y = arg[2].Trim();
-               var z = arg[3].Trim(); 
-               if(z.EndsWith(","))
+               prepForMove();  // process leg (group or number) and x,y,z from script command line
+               for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
                {
-                  z = z.Remove(z.Length - 1);
-               } // if
-
-               try
-               {
-                  int legNum = int.Parse(leg);
-                  if(legNum < 0 || legNum > 6)        // range check given leg number
-                  {
-                     Console.WriteLine($"ERROR transforming script file. Leg number {legNum} is an invalid number");
-                     newLine = "// COMPILER ERROR! Parsing leg command in script src file. Illegal leg number: " + legNum;
-                     outLines[outIndex] = newLine;
-                     outIndex++;
-                     break;
-                  }
-                  else
+                  if((legGroup[groupNum] & legMask[legNum]) != 0)
                   {
                      // update the toe position for the specified leg as requested
-                     legLocX[legNum] += Convert.ToDouble(x);
-                     legLocY[legNum] += Convert.ToDouble(y);
-                     legLocZ[legNum] += Convert.ToDouble(z);
+                     legGloX[legNum] = globalHomeX[legNum] + Convert.ToDouble(x);
+                     legGloY[legNum] = globalHomeY[legNum] + Convert.ToDouble(y);
+                     legGloZ[legNum] = globalHomeZ[legNum] + Convert.ToDouble(z);
+                     
+                     // now update the equivalent local coordinates
+                  transGlobalToLocal(legNum, legGloX[legNum], legGloY[legNum], legGloZ[legNum], ref legLocX[legNum], ref legLocY[legNum], ref legLocZ[legNum]);
+                  } // if(legGroup[groupNum] && legMask[i] != 0)
+               } // for( legNum=1; legNum<=6; legNum++)         
+            } // if cmd == "MoveRelHomeGlobal")
+// ====================================================================================================== "MoveRelLastLocal"
+// move leg (or leg group) a local coord offset in the x, y and z arguments from the last (i.e. current) leg position
+            else if(cmd == "MoveRelLastLocal")
+            {
+               prepForMove();  // process leg (group or number) and x,y,z from script command line
+               for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
+               {
+                  if((legGroup[groupNum] & legMask[legNum]) != 0)
+                  {
+                     // update the local coord version of toe position for the specified leg as requested
+                     legLocX[legNum] +=  Convert.ToDouble(x);
+                     legLocY[legNum] +=  Convert.ToDouble(y);
+                     legLocZ[legNum] +=  Convert.ToDouble(z);
                      
                      // now update the equivalent global coordinates
                      transLocalToGlobal(legNum, legLocX[legNum], legLocY[legNum], legLocZ[legNum], ref legGloX[legNum], ref legGloY[legNum], ref legGloZ[legNum]);
-
-                  } // else legNum check
-               
-               } // try
-               catch (FormatException e)
+                  } // if(legGroup[groupNum] && legMask[i] != 0)
+               } // for( legNum=1; legNum<=6; legNum++)         
+            } // if cmd == "MoveRelLastLocal")
+// ========================================================================================================== "MoveRelLastGlobal"
+// move leg (or leg group) a global coord offset in the x, y and z arguments from the last (i.e. current) leg position
+            else if(cmd == "MoveRelLastGlobal")
+            {
+               prepForMove();  // process leg (group or number) and x,y,z from script command line
+               for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
                {
-                  Console.WriteLine($"ERROR transforming script file. Parsing leg number caused {e.Message}");
-               } // catch            
-            } // if
-
+                  if((legGroup[groupNum] & legMask[legNum]) != 0)
+                  {
+                     // update the global coord version of toe position for the specified leg as requested
+                     legGloX[legNum] +=  Convert.ToDouble(x);
+                     legGloY[legNum] +=  Convert.ToDouble(y);
+                     legGloZ[legNum] +=  Convert.ToDouble(z);
+                     
+                     // now update the equivalent local coordinates
+                     transGlobalToLocal(legNum, legGloX[legNum], legGloY[legNum], legGloZ[legNum], ref legLocX[legNum], ref legLocY[legNum], ref legLocZ[legNum]);
+                  } // if(legGroup[groupNum] && legMask[i] != 0)
+               } // for( legNum=1; legNum<=6; legNum++)         
+            } // if cmd == "MoveRelLastGlobal")
 
 // ========================================================================================================== "Doit"
             else if(cmd == "Doit")
             {
                // get the time interval from the doit command line
-               var arg = parse[1].Split(',', 4);
-               var interval = arg[0].Trim();
-               int interval1 = int.Parse(interval);
+               if(parse.Length > 1 )   // was there a parse[1]? (if not, a reference causes runtime error)
+               {
+                  // yes. was it non trivial?
+                  if(string.IsNullOrEmpty(parse[1]))       // if there wasn't a valid argument for Doit command...
+                  {
+                     newError(lineNum,  "Error:",$"Doit command's mandatory time duration argument was invalid: {line}");
+                  } // if(parse[1] == "")
+                  else // otherwise proceed to build a move command for the MQTT output file
+                  {
+                     var arg = parse[1].Split(',', 4);
+                     var interval = arg[0].Trim();
+                     int interval1 = int.Parse(interval);
 
-               doDoit(interval1);   // call common routine for doit processing
+                     doDoit(interval1);   // call common routine for doit processing
+                  } // else
+               }
+               else // if(parse.Length > 1 ) 
+               {
+                  newError(lineNum,  "Error:",$"Doit command did not have mandatory time duration argument: {line}");
+               }
             } // if
 
 // ====================================================================================================== "CycleStart"
@@ -944,6 +1054,53 @@ namespace HexbotCompiler
 
             } // if(cmd = )
 
+// ====================================================================================================== "LegGroup"
+            else if(cmd == "LegGroup")
+            {
+               // Define a group of legs, represented by a letter, that all get the same commands when nme used
+               // Format: LegGroup a,1,3,5
+               //   where: a is that name of the group, case insensitive
+               //          remaining numbers are legs that are members o the group
+               // Predefined LegGroups:
+               //   a - all - 1,2,3,4,5,6
+               //   b - back - 3,6
+               //   f - front - 1,4
+               //   l - left - 4,5,6
+               //   r - right - 1,2,3
+               //   o - odds - 1,3,5
+               //   e - evens - 2,4,6
+               //   m - middles - 2,5
+               // Datastructure: Int LegGroup[27] where:
+               //    LegGroups[1] represents the name A...
+               //    the value is bit encoded. If n is in the group, the 2^n column = 1 in value
+
+               var arg = parse[1].Split(',', 7);
+               int splitCount = parse[1].Split(',', 7).Count();
+               string legName = arg[0].ToUpper();     // should do a bunch of error checking, range check
+               int groupNum = legName[0] - 64;            // convert ASCII to number. A = x41 > 1
+               // range check groupNum here
+               if(groupNum >= 1 & groupNum <= 26)     // proceed if the group name was a letter
+               {
+                  if(legGroup[groupNum] != 0)                // was there already a definition for this legGroup? 
+                  {
+                     newError(lineNum,"Warning:",$"LegGroup definition overwrote a previous definition for group {legName}");
+                  }  //  if(legGroup[groupNum] != 0) 
+                  // should validate group name
+                  // should issue warning if default leg group is overwritten
+                  legGroup[groupNum] = 0;                    // initialize before we start adding bits represent leg members
+                  for( int i = 1; i < splitCount; i++)   // may have up to 6 leg numbers in the command
+                  {
+                     // should do checks on leg number validity
+                     legGroup[groupNum] += legMask[int.Parse(arg[i])]; //  add the bit for this leg to accumulating mask
+                  } // for( int i = 1; i<=6; i++)
+               } // if(groupNum >= 1 & groupNum >= 26)
+               else
+               {
+                  // group name was not a letter. report and ignore bad LegGroup command
+                  newError(lineNum,  "Error:",$"Group name was not a single letter in: {line}");
+               }
+
+            } // if(cmd = LegGroup)
 
 /*  command handler template
             else if(cmd == "NewCmd")
@@ -962,7 +1119,7 @@ namespace HexbotCompiler
                newLine = "// COMPILER ERROR! Unknown command in script src file: " + cmd;
                outLines[outIndex] = newLine;
                outIndex++;
-               newError(lineNum,"Error:","Unknown command in script source file: " + cmd);
+               newError(lineNum,  "Error:", "Unknown command in script source file: " + cmd);
             } // else
          } // foreach()
       } // transformSrc()
