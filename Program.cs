@@ -850,9 +850,9 @@ namespace HexbotCompiler
    // if(line != rawLine) {Console.WriteLine($"<template.transformSrc> line  after: {line} ");}
 
             parse = line.Split(' ', 2);
-            var cmd = parse[0].Trim();  
+            var cmd = parse[0].Trim().ToUpper();  
 // ========================================================================================================= "symdef"
-            if(cmd == "symdef")
+            if(cmd == "SYMDEF")
             {
                newLine = "// " + line + " // symdef replaced by use of symbols.txt file.";
                outLines[outIndex] = newLine;
@@ -860,7 +860,7 @@ namespace HexbotCompiler
                newError(lineNum,"Warning:", "symdef command is obsolete, replaced by symbols in the symbol.txt file");
             } // if
 // ===================================================================================================== "MoveToHomePosition"
-            else if(cmd == "MoveToHomePosition")
+            else if(cmd == "MoveToHomePosition".ToUpper())
             {
                for(leg = 1; leg <= 6; leg++)
                {
@@ -876,14 +876,14 @@ namespace HexbotCompiler
 
             } // if
 // ========================================================================================================== "command"
-            else if(cmd == "command")
+            else if(cmd == "command".ToUpper())
             {
                newLine = "// " + line + " // command syntax not yet implemented in compiler.";
                outLines[outIndex] = newLine;
                outIndex++;
             } // if
 // ====================================================================================================== "MoveRelHomeLocal"
-            else if(cmd == "MoveRelHomeLocal")
+            else if(cmd == "MoveRelHomeLocal".ToUpper())
             {
                prepForMove();  // process leg (group or number) and x,y,z from script command line
                for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
@@ -902,7 +902,7 @@ namespace HexbotCompiler
             } // if cmd == "MoveRelHomeLocal")
 
 // ====================================================================================================== "MoveRelHomeGlobal"
-            else if(cmd == "MoveRelHomeGlobal")
+            else if(cmd == "MoveRelHomeGlobal".ToUpper())
             {
                prepForMove();  // process leg (group or number) and x,y,z from script command line
                for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
@@ -921,7 +921,7 @@ namespace HexbotCompiler
             } // if cmd == "MoveRelHomeGlobal")
 // ====================================================================================================== "MoveRelLastLocal"
 // move leg (or leg group) a local coord offset in the x, y and z arguments from the last (i.e. current) leg position
-            else if(cmd == "MoveRelLastLocal")
+            else if(cmd == "MoveRelLastLocal".ToUpper())
             {
                prepForMove();  // process leg (group or number) and x,y,z from script command line
                for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
@@ -940,7 +940,7 @@ namespace HexbotCompiler
             } // if cmd == "MoveRelLastLocal")
 // ========================================================================================================== "MoveRelLastGlobal"
 // move leg (or leg group) a global coord offset in the x, y and z arguments from the last (i.e. current) leg position
-            else if(cmd == "MoveRelLastGlobal")
+            else if(cmd == "MoveRelLastGlobal".ToUpper())
             {
                prepForMove();  // process leg (group or number) and x,y,z from script command line
                for( legNum=1; legNum<=6; legNum++)  // check to see if each possible leg is in this group
@@ -959,7 +959,7 @@ namespace HexbotCompiler
             } // if cmd == "MoveRelLastGlobal")
 
 // ========================================================================================================== "Doit"
-            else if(cmd == "Doit")
+            else if(cmd == "Doit".ToUpper())
             {
                // get the time interval from the doit command line
                if(parse.Length > 1 )   // was there a parse[1]? (if not, a reference causes runtime error)
@@ -985,7 +985,7 @@ namespace HexbotCompiler
             } // if
 
 // ====================================================================================================== "CycleStart"
-            else if(cmd == "CycleStart")
+            else if(cmd == "CycleStart".ToUpper())
             {
                // the CycleStart command is used to define the start of a series of flow commands (a cycle)
                //  that will be repeated a number of times using the ExecuteCycle command
@@ -1007,7 +1007,7 @@ namespace HexbotCompiler
             } // if(cmd = )
 
 // ====================================================================================================== "CycleEnd"
-            else if(cmd == "CycleEnd")
+            else if(cmd == "CycleEnd".ToUpper())
             {
                // the CycleEnd command is used to define the end of a series of flow commands (a cycle)
                //  that will be repeated a number of times using the ExecuteCycle command
@@ -1029,7 +1029,7 @@ namespace HexbotCompiler
             } // if(cmd = )
 
 // ====================================================================================================== "ExecuteCycle"
-            else if(cmd == "ExecuteCycle")
+            else if(cmd == "ExecuteCycle".ToUpper())
             {
                // the ExecuteCycle command is used to execute a previously defined series of flow commands (a cycle)
                // Format: ExecuteCycle name, reps
@@ -1055,7 +1055,7 @@ namespace HexbotCompiler
             } // if(cmd = )
 
 // ====================================================================================================== "LegGroup"
-            else if(cmd == "LegGroup")
+            else if(cmd == "LegGroup".ToUpper())
             {
                // Define a group of legs, represented by a letter, that all get the same commands when nme used
                // Format: LegGroup a,1,3,5
@@ -1103,7 +1103,7 @@ namespace HexbotCompiler
             } // if(cmd = LegGroup)
 
 /*  command handler template
-            else if(cmd == "NewCmd")
+            else if(cmd == "NewCmd".ToUpper())
             {
                // the NewCmd command is used for...
 
