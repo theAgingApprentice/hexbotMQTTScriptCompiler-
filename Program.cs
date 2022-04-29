@@ -214,6 +214,13 @@ namespace HexbotCompiler
          {
             lineNum ++;       // count one more line
 
+            // if the line is a comment starting with /, or a blank line, skip over it, but count it
+            if( rawLine == "" | rawLine.StartsWith("/") )   // if its a comment line
+            {
+               // abort processing this line, and go on to the next one in the foreach statement
+               continue;  //
+            } // if( rawLine == "" | rawLine.StartsWith("/") )
+
             // before we do any processing on the line, do symbol substitution
             // for example, if the line contains $H, replace it with the value for H that was in the symbol file
             // (at this point the symbol file has been processed into arrays symNames and symStrings, for symCount symbols)
@@ -838,10 +845,19 @@ namespace HexbotCompiler
          foreach(string rawLine in srcLines)
          { 
             lineNum++;           // count one more line in script file for error message info
+
+            // if the line is a comment starting with /, or a blank line, skip over it, but count it
+            if( rawLine == "" | rawLine.StartsWith("/") )   // if its a comment line
+            {
+               // abort processing this line, and go on to the next one in the foreach statement
+               continue;  //
+            } // if( rawLine == "" | rawLine.StartsWith("/") )
+
+
             // before we do any processing on the line, do symbol substitution
             // for example, if the line contains $H, replace it with the value for H that was in the symbol file
             // (at this point the symbol file has been processed into arrays symNames and symStrings, for symCount symbols)
-            
+           
             line = rawLine;        // we need a modifyable copy of the original line
             line = translateSymbols(line);       // we're in script object
    // WC($"Line={line}");  // display line for debugging purposes

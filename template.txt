@@ -1,5 +1,8 @@
+/ sample comment for testing
 copy var Thread = Java.type("java.lang.Thread");
 copy function execute() {
+/ another comment, followed by a blank line
+
 copy mybot = "$H/commands"
 copy send("NEW_FLOW")
 insert <templateFile>

@@ -1,4 +1,7 @@
+/ comment followed by a blank line
+
 MoveToHomePosition
+
 LegGroup x,1,6
 CycleStart 1
 MoveRelLastLOCAL $L, 0, 4, 0,
