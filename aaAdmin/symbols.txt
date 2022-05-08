@@ -1,0 +1,35 @@
+/ This is the file symbols.txt which resides in the hexbotMQTTScriptCompiler- folder
+/ Documentation: doc/compiler-spec.odt , section titled Symbols
+/ File format:
+/   blank lines, or lines starting with "/" are considered to be comments and are ignored
+/   symbol definition lines consist of:
+/     a letter in column 1 (case insensitive) representing the name of the symbol
+/     a single space character
+/     the text string associated with the symbol, which may contain spaces and special characters
+/     a final newline character
+/ Reserved symbols, used by the compiler for specific purposes
+/   $H  The Hexbot identifier, used in MQTT messages
+/   $I   The name of the input script file, preceded by an optional path
+/   $O  The name of the output MQTT file, preceded by an optional path.
+/   $F  Reserved for future use to enable individual features at compile time
+/ see the documentation file referenced above for examples.
+
+/ H is the name of the robot, for MQTT purposes
+/    Andrew: Hexbot94B97E5F4A40
+/    Doug:   Hexbot3C61054ADD98
+H Hexbot3C61054ADD98
+
+/ input file location, including relative path
+I scripts\test-from-folder.txt
+
+/ output file location, including absolute path
+O C:\Users\DougElliott\AppData\Local\MQTT-FX\scripts\01__hb-test-from-folder.js
+
+/ parameterized leg number that will be tested by resulting js code
+L 5
+
+/ number of test cycles to repeat (plus the initial one)
+C 4
+
+/ time interval in milliseconds for each leg movement
+T 600
