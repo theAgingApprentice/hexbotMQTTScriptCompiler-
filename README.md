@@ -61,8 +61,8 @@ To download this code to your local repository please do the following.
 - Create a tasks.json file
  * If you use Windows OS then **copy and rename** ```./vscode/tasks.json-WIN``` to ```./vscode/tasks.json```. Do not just rename or you will end up including files in the repository that we do not want in there.
  * If you use OSX OS then **copy and rename** ```./vscode/tasks.json-OSX``` to ```./vscode/tasks.json```. Do not just rename or you will end up including files in the repository that we do not want in there.  
-- Copy the symbols.txt file in the aaAdmin directory to the root directory.
-- Edit the H paramiter in the symbols.txt file to the name of your robot.
+- Copy the symbolsx.txt file in the aaAdmin directory to the root directory, and rename it to symbols.txt.
+- Edit the H parameter in the symbols.txt file to the name of your robot.
 - See next section for special instructions on how to run Visual Studio Code for working with C++ for native code.
 
 ## Running VSC
