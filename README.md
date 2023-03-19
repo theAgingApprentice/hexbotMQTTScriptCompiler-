@@ -42,7 +42,8 @@ robot's six legs.
 This library was written using the following tools:
 * [<img src="/img/vscLogo.png" width="15" height="15">](https://code.visualstudio.com/docs) 
 Microsoft's Visual Studio Code source code editor. 
-* C++ plugins.
+* C# plugins.
+* Install [dotnet SDK](https://code.visualstudio.com/docs/languages/dotnet)
 
 ## Code documentation
 
