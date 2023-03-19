@@ -22,7 +22,7 @@
 
 ## Overview
 
-This repository contains C++ code intended to run on your computer in order to generate workflows
+This repository contains C# code intended to run on your computer in order to generate workflows
 that can be fed into the Hexbot robot via MQTT in order to orchestrate complex movements for the
 robot's six legs.
 
