@@ -51,3 +51,8 @@ docs/latex*
 # files in main hexbotMQTTScriptCompiler- folder
 #
 symbols.txt
+
+#
+# MAC OneDrive files
+#
+.DS_Store
