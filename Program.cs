@@ -1,12 +1,18 @@
-﻿/// Programmer notes:
+﻿//using System;
+//using System.IO;
+
+
+using System.Net.WebSockets;
+using System.Security.AccessControl;
+using System.Threading.Tasks.Dataflow;
+
+/// Programmer notes:
 /// Create: https://docs.microsoft.com/en-us/dotnet/core/tutorials/with-visual-studio-code?pivots=dotnet-6-0
 /// Run: donet run in directory where *.csproj file resides or ./name where binary resides.
 /// Publish: https://docs.microsoft.com/en-us/dotnet/core/tutorials/publishing-with-visual-studio-code?pivots=dotnet-6-0
 /// Passing a variable number of parameters to a method: https://www.c-sharpcorner.com/UploadFile/manas1/params-in-C-Sharp-pass-variable-number-of-parameters-to-method/
 /// Before running be sure to save the file. This is NOT done automatically in VSC!
 /// To run be in src directry and type "dotnet run".
-//using System;
-//using System.IO;
 namespace HexbotCompiler
 {
    /// <summary>
@@ -202,7 +208,7 @@ namespace HexbotCompiler
                   } // if
                   if(robotName.ToUpper() == "DOUG")
                   {
-                     robotName = "Hexbot3C61054ADD98";
+                     robotName = "hfr48B8";
                   } // if
                   invalidInput = false;
                } // if userInput != "")
@@ -338,7 +344,43 @@ namespace HexbotCompiler
       private double[] legGloX = new double[7], legGloY = new double[7], legGloZ = new double[7];
       // arrays to track running local locations of 6 legs, each with X, Y and Z
       private double[] legLocX = new double[7], legLocY = new double[7], legLocZ = new double[7];
-      public double[] f_hipX = new double[7], f_hipY = new double[7];
+      double[] f_hipX = new double[7];
+      double[] f_hipY = new double[7];
+
+         // key physical dimensions for version 2 chassis
+         //    from robot code, global_variables.cpp
+         //
+         // ========================================================================
+         // first hip joint locations, just X and Y,in global coords. note prefix "d_"
+         const double d_cornerX = 8.901;   //cm from center of a corner hip servo to lateral center line
+         const double d_cornerY = 5.090;   //cm from center of a corner hip servo to the front/back center line
+         const double d_sideX   = 0.000;   //cm from side hip servo center to lateral center line
+         const double d_sideY   = 6.535;   //cm from side hip servo center to front/back center line
+         const double d_kneeW   = 3.683;   //cm vertical distance from chassis top surface (extended) to center of knee servo
+         const double d_thighL   = 4.702;   //cm horizontal distance from hip servo center to knee servo center
+         const double d_shinL   = 7.620;   //cm from knee servo center to ankle servo center
+         const double d_footL    = 11.059;  //cm from ankle servo center to tip of toe
+
+         // general symbols used in various formulas
+         double fp_frontHipX = d_cornerX ;
+         double fp_frontHipY = d_cornerY;
+         double fp_sideHipX = 0;
+         double fp_sideHipY = d_sideY;
+         public int[] legMask = new int[7];     // binary mask that selects a particular leg
+         public int[] legGroup = new int[27];   // definition of legGroups. index is letter of the alphabet,
+                                                // value is bit encoded legs that are present in group
+            //public var[] x, y, z 
+
+
+         const double localHomeX = d_thighL + d_shinL ;
+         const double localHomeY = -1.0 * d_footL;
+         const double localHomeZ = 0.0 ;
+
+         public double[] globalHomeX = new double[7];   // home position in global coords for 6 legs
+         public double[] globalHomeY = new double[7];
+         public double[] globalHomeZ = new double[7];
+
+
       public string[] symNames = new string[20];    // single character name for a symbol like $H
       public string[] symStrings = new string[20];  // string to be substituted for name with same index
       public string[] symLines = new string[100];  // holds lines from symbols file, including comments
@@ -355,21 +397,6 @@ namespace HexbotCompiler
 
       //string newLine;
 
-      double fp_frontHipX = 3.82739F + 7.13528F * .707107F;  // = 8.872796
-      double fp_frontHipY = 5.04750F;
-      double fp_sideHipX = 0;
-      double fp_sideHipY = 6.9423F;
-      public int[] legMask = new int[7];     // binary mask that selects a particular leg
-      public int[] legGroup = new int[27];   // definition of legGroups. index is letter of the alphabet,
-                                             // value is bit encoded legs that are present in group
-          //public var[] x, y, z 
-      double localHomeX ;
-      double localHomeY ;
-      double localHomeZ ;
-      public double[] globalHomeX = new double[7];   // home position in global coords for 6 legs
-      public double[] globalHomeY = new double[7];
-      public double[] globalHomeZ = new double[7];
-
       /// <summary>
       /// Puts each line of the script file into an element of a string array.
       /// <summary>
@@ -379,7 +406,8 @@ namespace HexbotCompiler
       public void getSrcContent()      // we're in scriptFile class
       {
          // some setup stuff for script processing, including symbol definitions from symbols.txt
-         setupForScript();
+         setupForScript();   // includes definition of physical dimensions
+
 
          Console.WriteLine(" ");       // display a blank line to separate dotnet command from compiler output
          // see if input file name was predefind in the $I symbol
@@ -461,14 +489,15 @@ namespace HexbotCompiler
 
             case 3:
             // Back Right leg
-            Xrt = Math.Cos(rad(45)) * (gx + fp_frontHipX) - Math.Sin(rad(45)) * (gy + fp_frontHipY);  // rotated (Xg,Yg)
-            Yrt = Math.Sin(rad(45)) * (gx - fp_frontHipX) + Math.Cos(rad(45)) * (gy + fp_frontHipY);
-            lx = -1 * Yrt;
-            lz = Xrt;        
+            Xrt = Math.Cos(rad(-45)) * (gx - -fp_frontHipX) - Math.Sin(rad(-45)) * (gy - -fp_frontHipY);  // rotated (Xg,Yg)
+            Yrt = Math.Sin(rad(-45)) * (gx - -fp_frontHipX) + Math.Cos(rad(-45)) * (gy - -fp_frontHipY);
+            lx = -1.0 * Xrt;
+            lz = -1.0 * Yrt;  
             break;
 
             case 4:
             // Front Left leg
+            //Console.WriteLine($"gx gy {gx}, {gy}");
             Xrt = Math.Cos(rad(45)) * (gx - fp_frontHipX) - Math.Sin(rad(45)) * (gy - fp_frontHipY);  // rotated (Xg,Yg)
             Yrt = Math.Sin(rad(45)) * (gx - fp_frontHipX) + Math.Cos(rad(45)) * (gy - fp_frontHipY);
             lx = Yrt;
@@ -486,7 +515,7 @@ namespace HexbotCompiler
             Xrt = Math.Cos(rad(-45)) * (gx + fp_frontHipX) - Math.Sin(rad(-45)) * (gy - fp_frontHipY);  // rotated (Xg,Yg)
             Yrt = Math.Sin(rad(-45)) * (gx + fp_frontHipX) + Math.Cos(rad(-45)) * (gy - fp_frontHipY);
             lx = Yrt;
-            lz = -1* Xrt;        
+            lz = Xrt;        
             break;
          
             default:
@@ -525,7 +554,7 @@ namespace HexbotCompiler
 
             case 4:
             // Front Left leg
-            gy = f_hipX[leg] + lx * Math.Cos(rad(45)) - lz * Math.Cos(rad(45));
+            gx = f_hipX[leg] + lx * Math.Cos(rad(45)) - lz * Math.Cos(rad(45));
             gy = f_hipY[leg] + lx * Math.Cos(rad(45)) + lz * Math.Cos(rad(45));
             break;
 
@@ -572,41 +601,58 @@ namespace HexbotCompiler
       {
          // define locations of each leg's hip, in global coordinates
          
-         f_hipX[1] = 8.87;  f_hipY[1] = -5.05;     // global coordinates for hip for each leg    
-         f_hipX[2] =   0 ;  f_hipY[2] = -6.94;
-         f_hipX[3] =-8.87;  f_hipY[3] = -5.05;
-         f_hipX[4] = 8.87;  f_hipY[4] =  5.05;
-         f_hipX[5] =   0 ;  f_hipY[5] =  6.94;
-         f_hipX[6] =-8.87;  f_hipY[6] =  5.05;
+         f_hipX[1] =        d_cornerX;    
+         f_hipY[1] = -1.0 * d_cornerY;     // global coordinates for hip for each leg    
+         f_hipX[2] =   0 ;               
+         f_hipY[2] = -1.0 * d_sideY;
+         f_hipX[3] = -1.0 * d_cornerX;    
+         f_hipY[3] = -1.0 * d_cornerY;
+         f_hipX[4] =        d_cornerX;    
+         f_hipY[4] =        d_cornerY;
+         f_hipX[5] =   0 ;               
+         f_hipY[5] =        d_sideY;
+         f_hipX[6] = -1.0 * d_cornerX;   
+         f_hipY[6] =        d_cornerY;
 
-         localHomeX = 13.78 ;      // by definition, local coords for home position are the same for all legs
-         localHomeY = -10.60 ;
-         localHomeZ = 0 ;
+         // ========================================================================
+         // and now home position locations (X, Y & Z) of toe, when all servos are centered. Note prefix "h_"
+         //const double h_cornerX = d_cornerX + Math.Cos(45*3.1415926/180)*(4);   //cm from center of a corner hip servo to lateral center line
+         const double sincos45 = .70710678  ;  // compiler won't let me put in Math.sin(...)
+         const double h_cornerX = d_cornerX + sincos45 * (d_thighL + d_shinL);    //
+         const double h_cornerY = d_cornerY + sincos45 * (d_thighL + d_shinL);    //
+         const double h_allZ = d_footL;
+
+         const double h_sideX   = 0.0 ;   //cm from side home position to x=0 plane
+         const double h_sideY   = d_sideY + d_thighL + d_shinL;   //cm from side home position to lateral center line
 
          // global coordinates for home position for each leg
-         globalHomeX[1] =  18.619;     // reference: hexbot/docs/MQTT scripts/creating-flows.odt ...
-         globalHomeY[1] = -14.792;     // ... section 15.1, Global Coordinates of Key Locations, in creating-flows.odt
-         globalHomeZ[1] = -10.595;
+         // TODO the manual section refrenced below probably neds an update
+         globalHomeX[1] =        h_cornerX;     // OUT-OF-DATE: reference: hexbot/docs/MQTT scripts/creating-flows.odt ...
+         globalHomeY[1] = -1.0 * h_cornerY;     // ... section 15.1, Global Coordinates of Key Locations, in creating-flows.odt
+         globalHomeZ[1] =        h_allZ;
 
-         globalHomeX[2] =   0.0;
-         globalHomeY[2] = -20.709;
-         globalHomeZ[2] = -10.595;
+         globalHomeX[2] =        h_sideX;
+         globalHomeY[2] = -1.0 * h_sideY;
+         globalHomeZ[2] =        h_allZ;
 
-         globalHomeX[3] = -18.619;
-         globalHomeY[3] = -14.792;
-         globalHomeZ[3] = -10.595;
+         globalHomeX[3] = -1.0 * h_cornerX;
+         globalHomeY[3] = -1.0 * h_cornerY;
+         globalHomeZ[3] =        h_allZ;
 
-         globalHomeX[4] =  18.619;
-         globalHomeY[4] =  14.792;
-         globalHomeZ[4] = -10.595;
+         globalHomeX[4] =        h_cornerX;
+         globalHomeY[4] =        h_cornerY;
+         globalHomeZ[4] =        h_allZ;
 
-         globalHomeX[5] =   0.0;
-         globalHomeY[5] =  20.709;
-         globalHomeZ[5] = -10.595;
+         globalHomeX[5] =        h_sideX;
+         globalHomeY[5] =        h_sideY;
+         globalHomeZ[5] =        h_allZ;
 
-         globalHomeX[6] = -18.619;
-         globalHomeY[6] =  14.792;
-         globalHomeZ[6] = -10.595;
+         globalHomeX[6] = -1.0 * h_cornerX;
+         globalHomeY[6] =        h_cornerY;
+         globalHomeZ[6] =        h_allZ;
+
+// ===================
+
 
          // a "move to home" command is added to start of script so we have a known starting point
          // ...based on that, we can fill in the current toe locations (after that command is executed)
@@ -619,6 +665,9 @@ namespace HexbotCompiler
 
             // now translate these to global coords. We'll track current position in both coord systems
             transLocalToGlobal( leg, legLocX[leg], legLocY[leg], legLocZ[leg], ref legGloX[leg], ref legGloY[leg], ref legGloZ[leg]);
+            //Console.WriteLine($"leg, locals {leg} {legLocX[leg]} {legLocY[leg]} {legLocZ[leg]}");
+            //Console.WriteLine($"leg, globls {leg} {legGloX[leg]} {legGloY[leg]} {legGloZ[leg]}");
+            //Console.WriteLine($" ");
 
             // and initialize the masks that select the bit representing a leg in the legGroup
             legMask[leg] = Convert.ToInt32( Math.Pow(2, (leg) ));
@@ -761,7 +810,7 @@ namespace HexbotCompiler
          //  if it's a number, fake a group containing just that leg as group 0 for consistent processing
          //
          // Move commands just need to loop through the legs in the group identified by groupNum for processing
-
+//Console.WriteLine($"parse1 {parse[1]} ");
          var arg = parse[1].Split(',', 4);
          var leg = arg[0].Trim();
          string legName = leg.ToUpper(); 
@@ -964,12 +1013,16 @@ namespace HexbotCompiler
                   if((legGroup[groupNum] & legMask[legNum]) != 0)
                   {
                      // update the global coord version of toe position for the specified leg as requested
+                     WC($"BEFORE: leg, legGloX {legNum},{legGloX[legNum]}");
                      legGloX[legNum] +=  Convert.ToDouble(x);
+                     WC($"AFTER: leg, legGloX {legNum},{legGloX[legNum]}");
                      legGloY[legNum] +=  Convert.ToDouble(y);
                      legGloZ[legNum] +=  Convert.ToDouble(z);
                      
                      // now update the equivalent local coordinates
-                     transGlobalToLocal(legNum, legGloX[legNum], legGloY[legNum], legGloZ[legNum], ref legLocX[legNum], ref legLocY[legNum], ref legLocZ[legNum]);
+                     WC($"--BEFORE: leg, localX {legNum},{legLocX[legNum]}");
+                     transGlobalToLocal(legNum,  legGloX[legNum],  legGloY[legNum],  legGloZ[legNum], ref legLocX[legNum], ref legLocY[legNum], ref legLocZ[legNum]);
+                     WC($"--AFTER: leg, localX {legNum},{legLocX[legNum]}");
                   } // if(legGroup[groupNum] && legMask[i] != 0)
                } // for( legNum=1; legNum<=6; legNum++)         
             } // if cmd == "MoveRelLastGlobal")

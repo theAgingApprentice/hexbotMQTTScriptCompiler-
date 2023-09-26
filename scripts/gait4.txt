@@ -1,0 +1,42 @@
+/ compiler script to do a 4 legged gait
+/ -documentation in gait4.pdf
+
+/set up in first position
+MoveToHomePosition
+/ pause command isn't implemented yet, so just repeat the command
+MoveToHomePosition
+MoveToHomePosition
+
+/ move legs 2 and 5 out of the way, into gull wing position
+MoveRelLastLocal 2,4,11,0
+MoveRelLastLocal 5,4,11,0
+Doit 1000,25
+
+/ move leg 1 to spot A
+MoveRelLastglobal 1,6,0,6
+Doit 1000,25
+MoveRelLastGlobal 1,0,0,-6
+Doit 1000,25
+
+/ move leg 4 to spot B
+MoveRelLastGlobal 4,2,0,6
+Doit 1000,25
+MoveRelLastGlobal 4,0,0,-6
+Doit 1000,25
+
+/ move leg 3 to spot C
+MoveRelLastGlobal 3,-2,0,6
+Doit 1000,25
+MoveRelLastGlobal 3,0,0,-6
+Doit 1000,25
+
+/ move leg6 to spot D
+MoveRelLastGlobal 6,-6,0,6
+Doit 1000,25
+MoveRelLastGlobal 6,0,0,-6
+Doit 1000,25
+
+
+
+/MoveRelLastglobal 1,0,0,-3
+/Doit 2000,25
