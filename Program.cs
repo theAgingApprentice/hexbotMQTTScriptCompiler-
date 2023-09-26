@@ -1013,16 +1013,12 @@ namespace HexbotCompiler
                   if((legGroup[groupNum] & legMask[legNum]) != 0)
                   {
                      // update the global coord version of toe position for the specified leg as requested
-                     WC($"BEFORE: leg, legGloX {legNum},{legGloX[legNum]}");
                      legGloX[legNum] +=  Convert.ToDouble(x);
-                     WC($"AFTER: leg, legGloX {legNum},{legGloX[legNum]}");
                      legGloY[legNum] +=  Convert.ToDouble(y);
                      legGloZ[legNum] +=  Convert.ToDouble(z);
                      
                      // now update the equivalent local coordinates
-                     WC($"--BEFORE: leg, localX {legNum},{legLocX[legNum]}");
                      transGlobalToLocal(legNum,  legGloX[legNum],  legGloY[legNum],  legGloZ[legNum], ref legLocX[legNum], ref legLocY[legNum], ref legLocZ[legNum]);
-                     WC($"--AFTER: leg, localX {legNum},{legLocX[legNum]}");
                   } // if(legGroup[groupNum] && legMask[i] != 0)
                } // for( legNum=1; legNum<=6; legNum++)         
             } // if cmd == "MoveRelLastGlobal")
