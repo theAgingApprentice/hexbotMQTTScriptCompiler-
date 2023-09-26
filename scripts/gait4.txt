@@ -1,5 +1,5 @@
-/ compiler script to do a 4 legged gait
-/ -documentation in gait4.pdf
+/ compiler script to walk with a 4 legged gait
+/ -documentation in gait4.pdf soon
 
 /set up in first position
 MoveToHomePosition
@@ -8,35 +8,51 @@ MoveToHomePosition
 MoveToHomePosition
 
 / move legs 2 and 5 out of the way, into gull wing position
+/ MoveRelLastLocal moves specified leg by offsets in local coords from wherever it currently is.
+/ we're in home position, and first command works on leg 2
+/ the 4 says go +4 in local X direction, i.e. sideways away from bot for leg 2
+/ the 11 say go +11 in local Y direction, i.e. raise the 11 cm
+/ the 0 says don't change the Z direction, i.e. don't pivot the hip
 MoveRelLastLocal 2,4,11,0
 MoveRelLastLocal 5,4,11,0
 Doit 1000,25
 
 / move leg 1 to spot A
+/ MoveRelLastGlobal moves specified leg by offsets in global coords from wherever it currently is.
+/ we're in home position, and these commands work on leg 1
+/ the first 6 says move 6 cm in the global X direction, i.e. towards front of bot
+/ the 0 says don't change the Y position - how far you are sideways from the centerline of the bot
+/ the last 6 says go 6 CM in the global Z direction, i.e. upwards
+/ this command moves toe diagonally, going forward and up at the same time
 MoveRelLastglobal 1,6,0,6
-Doit 1000,25
-MoveRelLastGlobal 1,0,0,-6
-Doit 1000,25
+/ the template.txt file controls the frame time interval (25 ish for smooth leg movement)
+/    and the debugging level ( 1 for no console output to slow down leg movement & make it jaggy)
+/ output a flow command to do the movement we described above
+Doit 1000
 
-/ move leg 4 to spot B
+/ do a similar command to lower the leg left in the air after last command, straight down
+MoveRelLastGlobal 1,0,0,-6
+Doit 1000
+
+/ move leg 4 to spot B - similar process, but a different relative offset
 MoveRelLastGlobal 4,2,0,6
 Doit 1000,25
 MoveRelLastGlobal 4,0,0,-6
-Doit 1000,25
+Doit 1000
 
-/ move leg 3 to spot C
+/ move leg 3 to spot C - similar process, but a different relative offset
 MoveRelLastGlobal 3,-2,0,6
 Doit 1000,25
 MoveRelLastGlobal 3,0,0,-6
-Doit 1000,25
+Doit 1000
 
-/ move leg6 to spot D
+/ move leg6 to spot D - similar process, but a different relative offset
 MoveRelLastGlobal 6,-6,0,6
 Doit 1000,25
 MoveRelLastGlobal 6,0,0,-6
-Doit 1000,25
+Doit 1000
 
+/ OK, legs are positioned. ready to do the actual 4 legged walking
 
+/ to be continued...
 
-/MoveRelLastglobal 1,0,0,-3
-/Doit 2000,25
