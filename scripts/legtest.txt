@@ -1,0 +1,20 @@
+/ compiler script to test coordinate translation routines
+
+/set up in first position
+MoveToHomePosition
+/ pause command isn't implemented yet, so just repeat the command
+MoveToHomePosition
+MoveToHomePosition
+
+/ move all legs up 4 cm, and back 4 cm
+/MoveRelLastGlobal A,-4,0,4
+MoveRelLastGlobal $L,-4,0,4
+Doit $p
+
+/ move all legs forward 4 cm
+/MoveRelLastGlobal A, 4,0,0
+MoveRelLastGlobal $L, 4,0,0
+Doit $p
+
+/ and return to home position to wrap up
+MoveToHomePosition
