@@ -579,15 +579,32 @@ namespace HexbotCompiler
       public void doDoit(int tmr)       // the doit command processing is done if there is a doit command in the script
       {                                // but also implicitly from some commands like MoveToHomePosition
          string sendCmd = "send(\"Flow,"; // First part of send command. 
-         string macro = "MLC"; // Type of send command.
-         string moveStright = "10,0,0,0"; // Only support move toe in straight line for now.                
+         string moveStright = "10,0,0,0"; // Only support move toe in straight line for now.     
+         string outType = symLookup("Z");
+         string macro;     // compiler wants this pre-declared
+         if(outType == "global") {
+         macro = "MGC" ; // Type of send command.
+         } 
+         else {
+         macro = "MLC" ; // Type of send command.
+         }         
          string newLine = sendCmd + tmr + "," + macro + "," + moveStright;
          // now output 3 numbers representing local coords, for each leg
          for(int l=1; l<=6; l++)
          {
-            newLine += " ," + Math.Round(legLocX[l],2).ToString();   // append X value
-            newLine += "," + Math.Round(legLocY[l],2).ToString();   // append Y value
-            newLine += "," + Math.Round(legLocZ[l],2).ToString();   // append Z value
+            if(outType != "global")
+            {  // if Z symbol is not "global" then use local coordinates in MLC command
+               newLine += " ," + Math.Round(legLocX[l],2).ToString();   // append X value
+               newLine += "," +  Math.Round(legLocY[l],2).ToString();   // append Y value
+               newLine += "," +  Math.Round(legLocZ[l],2).ToString();   // append Z value
+            }
+            else
+            {  // if Z symbol is "global" then use global coordinates in MLG command
+               newLine += " ," + Math.Round(legGloX[l],2).ToString();   // append X value
+               newLine += "," +  Math.Round(legGloY[l],2).ToString();   // append Y value
+               newLine += "," +  Math.Round(legGloZ[l],2).ToString();   // append Z value
+
+            }
          }  // for l=
          outLines[outIndex] = newLine + "\")";
          outIndex++;

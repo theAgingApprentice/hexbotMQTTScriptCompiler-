@@ -15,7 +15,7 @@ MoveToHomePosition
 / the 0 says don't change the Z direction, i.e. don't pivot the hip
 MoveRelLastLocal 2,4,11,0
 MoveRelLastLocal 5,4,11,0
-Doit 1000,25
+Doit $p,25
 
 / move leg 1 to spot A
 / MoveRelLastGlobal moves specified leg by offsets in global coords from wherever it currently is.
@@ -28,31 +28,76 @@ MoveRelLastglobal 1,6,0,6
 / the template.txt file controls the frame time interval (25 ish for smooth leg movement)
 /    and the debugging level ( 1 for no console output to slow down leg movement & make it jaggy)
 / output a flow command to do the movement we described above
-Doit 1000
+Doit $p
 
 / do a similar command to lower the leg left in the air after last command, straight down
 MoveRelLastGlobal 1,0,0,-6
-Doit 1000
+Doit $p
 
 / move leg 4 to spot B - similar process, but a different relative offset
 MoveRelLastGlobal 4,2,0,6
-Doit 1000,25
+Doit $p
 MoveRelLastGlobal 4,0,0,-6
-Doit 1000
+Doit $p
 
 / move leg 3 to spot C - similar process, but a different relative offset
 MoveRelLastGlobal 3,-2,0,6
-Doit 1000,25
+Doit $p
 MoveRelLastGlobal 3,0,0,-6
-Doit 1000
+Doit $P
 
 / move leg6 to spot D - similar process, but a different relative offset
 MoveRelLastGlobal 6,-6,0,6
-Doit 1000,25
+Doit $p
 MoveRelLastGlobal 6,0,0,-6
-Doit 1000
+Doit $p
 
 / OK, legs are positioned. ready to do the actual 4 legged walking
+
+/Each step has 2 phases:
+/ in the first:
+/     - back most leg lifts up and forward
+/     - other legs push back a bit (4 cm) on the floor
+/ in the second:
+/     - backmost leg comes straight down to start of it's on-floor travel
+/     - other legs push back a bit on the floor
+
+/Each of the 8 phases has a single move command (i.e. Doit) including movement for all 4 active legs
+
+/Phase 1 -------------------------
+/ move leg 1 to half way between spot A and spot B
+MoveRelLastGlobal 1,-2,0,0
+
+/ move leg 3 to half way between spot B and spot C
+/ command looks the same because it's relative to current position
+MoveRelLastGlobal 3,-2,0,0
+
+/ move leg 4 to half way between spot C and spot D
+MoveRelLastGlobal 4,-2,0,0
+
+/ left leg 6 and move it forwards to spot A, but up in the air
+MoveRelLastGlobal 6,8,0,6
+
+Doit $w
+
+/Phase 2 -------------------------
+/ move leg 1 the rest of the way to spot B
+MoveRelLastGlobal 1,-2,0,0
+
+/ move leg 3 the rest of the way to spot C
+/ command looks the same because it's relative to current position
+MoveRelLastGlobal 3,-2,0,0
+
+/ move leg 4 the rest of the way to spot D
+MoveRelLastGlobal 4,-2,0,0
+
+/ lower leg 6 to spot A on the floor
+MoveRelLastGlobal 6,0,0,-6
+
+Doit $w
+
+
+
 
 / to be continued...
 
