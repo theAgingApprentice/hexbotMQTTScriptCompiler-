@@ -76,7 +76,7 @@ MoveRelLastGlobal 3,-2,0,0
 MoveRelLastGlobal 4,-2,0,0
 
 / left leg 6 and move it forwards to spot A, but up in the air
-MoveRelLastGlobal 6,8,0,6
+MoveRelLastGlobal 6,12,0,6
 
 Doit $w
 
@@ -95,8 +95,37 @@ MoveRelLastGlobal 4,-2,0,0
 MoveRelLastGlobal 6,0,0,-6
 
 Doit $w
+/ =============================================
 
+/Phase 3 -------------------------
+/ move leg 1 half way to spot C
+MoveRelLastGlobal 1,-2,0,0
 
+/ move leg 3 half way to spot D
+MoveRelLastGlobal 3,-2,0,0
+
+/ lift leg 4 and move forward to spot A
+MoveRelLastGlobal 4,12,0,6
+
+/ move leg 6  half way to spot B
+MoveRelLastGlobal 6,-2,0,0
+
+Doit $w
+
+/Phase 4 -------------------------
+/ move leg 1 the rest of the way to spot C
+MoveRelLastGlobal 1,-2,0,0
+
+/ move leg 3 the rest of the way to spot D
+MoveRelLastGlobal 3,-2,0,0
+
+/ move leg 4 back down
+MoveRelLastGlobal 4,0,0,-6
+
+/ move leg 6 rest of the way to spot B
+MoveRelLastGlobal 6,-2,0,0
+
+Doit $w
 
 
 / to be continued...

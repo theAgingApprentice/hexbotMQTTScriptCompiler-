@@ -6,14 +6,28 @@ MoveToHomePosition
 MoveToHomePosition
 MoveToHomePosition
 
-/ move all legs up 4 cm, and back 4 cm
-/MoveRelLastGlobal A,-4,0,4
-MoveRelLastGlobal $L,-4,0,4
+/ move all legs back 4 cm
+MoveRelLastGlobal $L,-4,0,0
 Doit $p
 
 / move all legs forward 4 cm
-/MoveRelLastGlobal A, 4,0,0
 MoveRelLastGlobal $L, 4,0,0
+Doit $p
+
+/move all legs up 4 cm
+MoveRelLastGlobal $L, 0,0,4
+Doit $p
+
+/move all legs back down
+MoveRelLastGlobal $L, 0,0,-4
+Doit $p
+
+/ move all legs forward another 4 cm
+MoveRelLastGlobal $L, 4,0,0
+Doit $p
+
+/ move all legs back 4 cm
+MoveRelLastGlobal $L,-4,0,0
 Doit $p
 
 / and return to home position to wrap up
