@@ -6,7 +6,7 @@ copy function execute() {
 copy mybot = "$H/commands"
 copy send("NEW_FLOW")
 insert <templateFile>
-copy send("DO_FLOW,1,25")
+copy send("DO_FLOW,49,25")
 copy action.setExitCode(0);
 copy action.setResultText("done.");
 copy out("Parameter parameter set up complete");
