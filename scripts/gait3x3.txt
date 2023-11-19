@@ -1,0 +1,66 @@
+/ compiler script to walk with a alternating 3 legged gait
+
+
+/set up in first position
+MoveToHomePosition
+/ pause command isn't implemented yet, so just repeat the command
+MoveToHomePosition
+
+/ push legs down and in to center a bit to maximize stability
+MoveRelLastLocal A,-2,-4,0
+
+/Position legs for start of 2 step gait
+
+/ move odd legs 1 to spot A
+/ MoveRelLastGlobal moves specified leg by offsets in global coords from wherever it currently is.
+
+/ move legs 1, 3 and 5 up and forward
+MoveRelLastglobal o,2,0,4
+Doit $p
+
+/ and then straight down
+MoveRelLastglobal o,0,0,-4
+Doit $p
+
+/ similarly, move even legs up and back to spot B
+MoveRelLastglobal e,-2,0,4
+Doit $p
+
+/ and then straight down
+MoveRelLastglobal e,0,0,-4
+Doit $p
+
+/ once we gte the step debugged, we can do it repeatedly with a cycle
+/ Cyclestart 8
+
+/ ==================== tme to take a step/
+/push the odd legs back half a step
+MoveRelLastGlobal o,-2,0,0
+/and raise the even legs from spot B 
+MoveRelLastGlobal e,4,0,4
+Doit $w
+
+/and push odds back a bit more, and put evens onto floor at start of their step
+MoveRelLastGlobal o,-2,0,0
+/ and drop down the evens 
+MoveRelLastGlobal e,0,0,-4
+Doit $w
+
+/ ============== and now a step with the other 3 legs
+/push the even legs back half a step
+MoveRelLastGlobal e,-2,0,0
+/and raise the odd legs from spot B 
+MoveRelLastGlobal e,4,0,4
+Doit $w
+
+/and push evens back a bit more, and put odds onto floor at start of their step
+MoveRelLastGlobal e,-2,0,0
+/ and drop down the evens 
+MoveRelLastGlobal o,0,0,-4
+Doit $w
+
+/ ====== this would be the end of the cycle ====
+
+/ CycleEnd 8
+
+/ ExecuteCycle 8,2

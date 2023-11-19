@@ -7,14 +7,16 @@ MoveToHomePosition
 MoveToHomePosition
 MoveToHomePosition
 
+MoveRelLastLocal A,-2,-4,0
+
 / move legs 2 and 5 out of the way, into gull wing position
 / MoveRelLastLocal moves specified leg by offsets in local coords from wherever it currently is.
 / we're in home position, and first command works on leg 2
 / the 4 says go +4 in local X direction, i.e. sideways away from bot for leg 2
 / the 11 say go +11 in local Y direction, i.e. raise the 11 cm
 / the 0 says don't change the Z direction, i.e. don't pivot the hip
-MoveRelLastLocal 2,4,11,0
-MoveRelLastLocal 5,4,11,0
+MoveRelLastLocal 2,6,15,0
+MoveRelLastLocal 5,6,15,0
 Doit $p,25
 
 / move leg 1 to spot A
@@ -22,37 +24,40 @@ Doit $p,25
 / we're in home position, and these commands work on leg 1
 / the first 6 says move 6 cm in the global X direction, i.e. towards front of bot
 / the 0 says don't change the Y position - how far you are sideways from the centerline of the bot
-/ the last 6 says go 6 CM in the global Z direction, i.e. upwards
+/ the last 6 says go 5 CM in the global Z direction, i.e. upwards
 / this command moves toe diagonally, going forward and up at the same time
-MoveRelLastglobal 1,6,0,6
+MoveRelLastglobal 1,6,0,5
 / the template.txt file controls the frame time interval (25 ish for smooth leg movement)
 /    and the debugging level ( 1 for no console output to slow down leg movement & make it jaggy)
 / output a flow command to do the movement we described above
 Doit $p
 
 / do a similar command to lower the leg left in the air after last command, straight down
-MoveRelLastGlobal 1,0,0,-6
+MoveRelLastGlobal 1,0,0,-5
 Doit $p
 
 / move leg 4 to spot B - similar process, but a different relative offset
-MoveRelLastGlobal 4,2,0,6
+MoveRelLastGlobal 4,2,0,5
 Doit $p
-MoveRelLastGlobal 4,0,0,-6
+MoveRelLastGlobal 4,0,0,-5
 Doit $p
 
 / move leg 3 to spot C - similar process, but a different relative offset
-MoveRelLastGlobal 3,-2,0,6
+MoveRelLastGlobal 3,-2,0,5
 Doit $p
-MoveRelLastGlobal 3,0,0,-6
+MoveRelLastGlobal 3,0,0,-5
 Doit $P
 
 / move leg6 to spot D - similar process, but a different relative offset
-MoveRelLastGlobal 6,-6,0,6
+MoveRelLastGlobal 6,-6,0,5
 Doit $p
-MoveRelLastGlobal 6,0,0,-6
+MoveRelLastGlobal 6,0,0,-5
 Doit $p
 
 / OK, legs are positioned. ready to do the actual 4 legged walking
+
+/ ====== could start a cycle here, so we could repeat the gait sequence easily ========
+Cyclestart 8
 
 /Each step has 2 phases:
 / in the first:
@@ -68,15 +73,15 @@ Doit $p
 / move leg 1 to half way between spot A and spot B
 MoveRelLastGlobal 1,-2,0,0
 
-/ move leg 3 to half way between spot B and spot C
+/ move leg 4 to half way between spot B and spot C
 / command looks the same because it's relative to current position
-MoveRelLastGlobal 3,-2,0,0
-
-/ move leg 4 to half way between spot C and spot D
 MoveRelLastGlobal 4,-2,0,0
 
-/ left leg 6 and move it forwards to spot A, but up in the air
-MoveRelLastGlobal 6,12,0,6
+/ move leg 3 to half way between spot C and spot D
+MoveRelLastGlobal 3,-2,0,0
+
+/ left leg 6 from spot D and move it forwards to spot A, but up in the air
+MoveRelLastGlobal 6,12,0,5
 
 Doit $w
 
@@ -84,28 +89,30 @@ Doit $w
 / move leg 1 the rest of the way to spot B
 MoveRelLastGlobal 1,-2,0,0
 
-/ move leg 3 the rest of the way to spot C
+/ move leg 4 the rest of the way to spot C
 / command looks the same because it's relative to current position
-MoveRelLastGlobal 3,-2,0,0
-
-/ move leg 4 the rest of the way to spot D
 MoveRelLastGlobal 4,-2,0,0
 
+/ move leg 3 the rest of the way to spot D
+MoveRelLastGlobal 3,-2,0,0
+
 / lower leg 6 to spot A on the floor
-MoveRelLastGlobal 6,0,0,-6
+MoveRelLastGlobal 6,0,0,-5
 
 Doit $w
 / =============================================
 
 /Phase 3 -------------------------
 / move leg 1 half way to spot C
+
 MoveRelLastGlobal 1,-2,0,0
 
-/ move leg 3 half way to spot D
-MoveRelLastGlobal 3,-2,0,0
+/ move leg 4 half way to spot D
+MoveRelLastGlobal 4,-2,0,0
 
-/ lift leg 4 and move forward to spot A
-MoveRelLastGlobal 4,12,0,6
+/ lift leg 3 and move forward to spot A
+MoveRelLastGlobal 3,12,0,5
+
 
 / move leg 6  half way to spot B
 MoveRelLastGlobal 6,-2,0,0
@@ -116,17 +123,49 @@ Doit $w
 / move leg 1 the rest of the way to spot C
 MoveRelLastGlobal 1,-2,0,0
 
-/ move leg 3 the rest of the way to spot D
-MoveRelLastGlobal 3,-2,0,0
+/ move leg 4 the rest of the way to spot D
+MoveRelLastGlobal 4,-2,0,0
 
-/ move leg 4 back down
-MoveRelLastGlobal 4,0,0,-6
+/ move leg 3 back down
+MoveRelLastGlobal 3,0,0,-5
 
 / move leg 6 rest of the way to spot B
 MoveRelLastGlobal 6,-2,0,0
 
 Doit $w
 
+/ ===============================================
+/similarly, phase 5 ------------------
+MoveRelLastGlobal 1,-2,0,0
+MoveRelLastGlobal 4,12,0,5
+MoveRelLastGlobal 3,-2,0,0
+MoveRelLastGlobal 6,-2,0,0
+Doit $w 
 
-/ to be continued...
+/ phase 6 ---------------------------
+MoveRelLastGlobal 1,-2,0,0
+MoveRelLastGlobal 4,0,0,-5
+MoveRelLastGlobal 3,-2,0,0
+MoveRelLastGlobal 6,-2,0,0
+Doit $w
 
+/ =================================================
+/ phase 7 ------------------
+MoveRelLastGlobal 1,12,0,5
+MoveRelLastGlobal 4,-2,0,0
+MoveRelLastGlobal 3,-2,0,0
+MoveRelLastGlobal 6,-2,0,0
+Doit $w
+
+/ phase 8 ---------------------------
+MoveRelLastGlobal 1,0,0,-5
+MoveRelLastGlobal 4,-2,0,0
+MoveRelLastGlobal 3,-2,0,0
+MoveRelLastGlobal 6,-2,0,0
+Doit $w
+
+/ ====== this would be the end of the cycle ====
+
+CycleEnd 8
+
+ExecuteCycle 8,2

@@ -1,0 +1,135 @@
+/ script to do various dance like MoveAbsoluteLocal
+
+/first part pulls in legs a bit - from gait6
+
+/Doit 500
+
+/set up in home position
+MoveToHomePosition
+
+/ now pull each toe inward by 4 cm, local coords
+leggroup s,1,6 
+MoveRelLastLocal s,-$Q,3,0
+Doit $p
+
+MoveRelLastLocal s,0,-3,0
+Doit $p
+
+leggroup d,3,4
+MoveRelLastLocal d,-$Q,3,0
+Doit $p
+
+MoveRelLastLocal d,0,-3,0
+Doit $p
+
+MoveRelLastLocal m,-$Q,3,0
+Doit $p
+
+MoveRelLastLocal m,0,-3,0
+Doit $p
+
+/MoveRelLastLocal a,0,-$Q,0
+/Doit $p
+
+
+/ do a tilt in one slow move
+/ we're in the "pulled in 4 cm" position
+
+/ avoid belly-rub - don't lift legs, just push the opposite ones more
+/lower back toes by 3 cm
+MoveRelLastglobal B,0,0,-$y
+/raise front toes by 3 cm
+/MoveRelLastglobal F,0,0,$y
+Doit $X
+
+/ .. and back to level again
+/raise back toes by 3 cm
+MoveRelLastglobal B,0,0,$y
+/lower front toes by 3 cm
+/MoveRelLastglobal F,0,0,-$y
+Doit $X
+
+/ .. and same thing, tilting in other direction
+/raise back toes by 3 cm
+/MoveRelLastglobal B,0,0,$y
+/lower front toes by 3 cm
+MoveRelLastglobal F,0,0,-$y
+Doit $X
+
+/lower back toes by 3 cm
+/MoveRelLastglobal B,0,0,-$y
+/raise front toes by 3 cm
+MoveRelLastglobal F,0,0,$y
+Doit $X
+
+/========== try a side tilt ==============
+/ first, adjust middle legs so they're in a line front to back with corners
+/ move them the difference in global Y coords of corner & middle legs 
+/ = 18.86 - 13.8 = 5.06
+/ **** above isn't valid in the "pulled-in-4" position
+MoveRelLastGlobal 2,0,3.5,3
+MoveRelLastGlobal 2,0,0,-3
+Doit 300
+MoveRelLastGlobal 5,0,-3.5,3
+MoveRelLastGlobal 5,0,0,-3
+Doit 300
+
+/ now raise and lower opposite sides
+/ no - bad to raise toes. just lower opposite side more
+
+MoveRelLastGlobal L,0,0,-$a
+Doit 1001
+MoveRelLastGlobal L,0,0,$a
+Doit 1001
+
+MoveRelLastGlobal R,0,0,-$a
+Doit 1001
+MoveRelLastGlobal R,0,0,$a
+Doit 1001
+
+MoveRelLastGlobal L,0,0,-$a
+Doit 1001
+MoveRelLastGlobal L,0,0,$a
+MoveRelLastGlobal R,0,0,-$a
+Doit 1001
+MoveRelLastGlobal R,0,0,$a
+Doit 1001
+
+/ now try to sit on haunches:
+/ tilt backwards, using middle legs to raise front
+/ lift front legs and see if we can stand on back 4
+
+/ we're in pulled in position, determined by Q symbol
+/ or we will be, once we reverse leg 2 & 5 changes for alignment above
+MoveRelLastGlobal 2,0,-3.5,3
+MoveRelLastGlobal 2,0,0,-3
+Doit 300
+MoveRelLastGlobal 5,0,3.5,3
+MoveRelLastGlobal 5,0,0,-3
+Doit 300
+
+/ let's adjust that, trying to get better vertical leverage
+/ we'll go out 2 cm, and 5 cm to the front
+/ raise middle legs first - they seem to want to drag
+MoveRelLastGlobal m,0,0,5
+Doit 300
+
+/ now change the x an y, now that the leg is in the air
+MoveRelLastGlobal 2,5,2,0
+MoveRelLastGlobal 2,0,0,-5
+Doit 300
+MoveRelLastGlobal 5,5,2,0
+MoveRelLastGlobal 5,0,0,-5
+Doit 300
+
+/ now push down on middle legs to raise the front
+/MoveRelLastGlobal M,0,0,-$R
+MoveRelLastGlobal M,0,0,-4
+MoveRelLastGlobal B,0,0,2
+Doit 2000 
+
+/ and then just lower again
+/MoveRelLastGlobal M,0,0,$R
+MoveRelLastGlobal M,0,0,4
+MoveRelLastGlobal B,0,0,-2
+Doit 2000
