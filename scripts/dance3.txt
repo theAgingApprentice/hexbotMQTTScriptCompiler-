@@ -1,0 +1,132 @@
+/ script to do various dance like MoveAbsoluteLocal
+
+/first part pulls in legs a bit - from gait6
+
+/Doit 500
+
+/set up in home position
+MoveToHomePosition
+
+/ don't pull toes in, but lift and lower them in place to "reseat" them
+leggroup s,1,6
+/straight up and down
+MoveRelLastglobal s,0,0,4
+Doit $p
+MoveRelLastglobal s,0,0,-4
+Doit $p
+
+leggroup d,3,4
+MoveRelLastglobal d,0,0,4
+Doit $p
+MoveRelLastglobal d,0,0,-4
+Doit $p
+
+MoveRelLastglobal m,0,0,4
+Doit $p
+MoveRelLastglobal m,0,0,-4
+Doit $p
+
+/ reposition back legs inward a bit for stability when sitting
+MoveRelLastGlobal 3,-3,3,4
+doit 300
+MoveRelLastGlobal 3,0,0,-4
+doit 300
+
+MoveRelLastGlobal 6,-3,-3,4
+doit 300
+MoveRelLastGlobal 6,0,0,-4
+doit 300
+
+/ now try to sit on haunches:
+/ tilt backwards, using middle legs to raise front
+/ and pull up back legs a bit to help, without grounding belly
+/ lift front legs and see if we can stand on back 4
+
+/ we're in home position
+
+/ let's adjust that, trying to get better vertical leverage
+/ we'll go out 0 cm, and 5 cm to the front
+/ raise middle legs first - they seem to want to drag
+MoveRelLastGlobal m,0,0,5
+Doit 500
+
+/ now change the x and y, now that the leg is in the air
+MoveRelLastGlobal 2,3,3,0
+Doit 500
+/and drop it down
+MoveRelLastGlobal 2,0,0,-5
+Doit 500
+
+/ similar for leg 5 on other side
+MoveRelLastGlobal 5,3,-3,0
+Doit 500
+MoveRelLastGlobal 5,0,0,-5
+Doit 500
+
+/ now push down on middle legs to raise the front
+MoveRelLastGlobal M,0,0,-5
+/ and raise the back legs a bit to help out
+MoveRelLastGlobal B,0,0,3
+Doit 2000 
+
+/ OK, front legs should be off the ground 
+/ bring them together and up
+MoveRelHomeLocal 1,5.99,+11,6
+MoveRelHomeLocal 4,5.99,+11,-6
+Doit 2000
+
+/ move apart a bit
+MoveRelHomeLocal 1,5.99,+11,4
+MoveRelHomeLocal 4,5.99,+11,-4
+Doit 300
+
+/ and then back, like clapping
+MoveRelHomeLocal 1,5.99,+11,6
+MoveRelHomeLocal 4,5.99,+11,-6
+Doit 300
+
+/ move apart a bit
+MoveRelHomeLocal 1,5.99,+11,4
+MoveRelHomeLocal 4,5.99,+11,-4
+Doit 300
+
+/ and then back, like clapping
+MoveRelHomeLocal 1,5.99,+11,6
+MoveRelHomeLocal 4,5.99,+11,-6
+Doit 300
+
+/ stall until applause starts to fade
+MoveRelLastGlobal a,0,0,0
+Doit 1000
+
+/ try a sideways tile while sitting: raise leg 4, lower leg 3
+/MoveRelLastGlobal 3,0,0,-4
+/MoveRelLastGlobal 5,0,0,+4
+doit 1000
+
+/ move apart a bit
+MoveRelHomeLocal 1,5.99,+11,4
+MoveRelHomeLocal 4,5.99,+11,-4
+Doit 300
+
+/ and then back, like clapping
+MoveRelHomeLocal 1,5.99,+11,6
+MoveRelHomeLocal 4,5.99,+11,-6
+Doit 300
+
+/ try a sideways tile while sitting: raise leg 4, lower leg 3
+MoveRelLastGlobal 3,0,0,-3
+MoveRelLastGlobal 5,0,0,+3
+doit 1000
+
+MoveRelLastGlobal 3,0,0,+3
+MoveRelLastGlobal 5,0,0,-3
+doit 1000
+
+MoveRelLastGlobal 3,0,0,+3
+MoveRelLastGlobal 5,0,0,-3
+doit 1000
+
+MoveRelLastGlobal 3,0,0,-3
+MoveRelLastGlobal 5,0,0,+3
+doit 1000

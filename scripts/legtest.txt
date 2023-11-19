@@ -4,7 +4,7 @@
 MoveToHomePosition
 / pause command isn't implemented yet, so just repeat the command
 MoveToHomePosition
-MoveToHomePosition
+/ MoveToHomePosition
 
 / move all legs back 4 cm
 MoveRelLastGlobal $L,-4,0,0

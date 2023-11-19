@@ -1,0 +1,188 @@
+/ compiler script to walk with a 6 legged gait
+/ -documentation in gait6.pdf soon
+
+/ need to be able to move joints individually in some cases
+
+/MoveAbsoluteLocal A,0,5,0
+/Doit 500
+
+/set up in home position
+MoveToHomePosition
+
+leggroup s,1,6
+MoveRelLastLocal s,-4,3,0
+Doit $p
+
+MoveRelLastLocal s,0,-3,0
+Doit $p
+
+leggroup d,3,4
+MoveRelLastLocal d,-4,3,0
+Doit $p
+
+MoveRelLastLocal d,0,-3,0
+Doit $p
+
+MoveRelLastLocal m,-4,3,0
+Doit $p
+
+MoveRelLastLocal m,0,-3,0
+Doit $p
+
+MoveRelLastLocal a,0,-4,0
+Doit $p
+
+/===================================
+
+/ position leg 1 to position A
+MoveRelLastGlobal 1,2,0,2
+Doit $P
+MoveRelLastGlobal 1,0,0,-2
+Doit $p
+
+/ position leg 2 to position b
+MoveRelLastGlobal 2,1.2,0,2
+Doit $P
+MoveRelLastGlobal 2,0,0,-2
+Doit $p
+
+/ position leg 3 to position c
+MoveRelLastGlobal 3,.4,0,2
+Doit $P
+MoveRelLastGlobal 3,0,0,-2
+Doit $p
+
+/ position leg 4 to position d
+MoveRelLastGlobal 4,-.4,0,2
+/MoveRelLastGlobal 4,2,0,2
+Doit $P
+MoveRelLastGlobal 4,0,0,-2
+Doit $p
+
+/ position leg 5 to position e
+MoveRelLastGlobal 5,-1.2,0,2
+Doit $P
+MoveRelLastGlobal 5,0,0,-2
+Doit $p
+
+/ position leg 6 to position f
+MoveRelLastGlobal 6,-2,0,2
+Doit $P
+MoveRelLastGlobal 6,0,0,-2
+Doit $p
+
+/ ===================== start to walk
+
+cyclestart 9
+
+/ doing half step # 1
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,4,0,3
+doit $w
+
+/ doing half step # 2
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,0,0,-3
+doit $w
+
+/ doing half step # 3
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,4,0,3
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 4
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,0,0,-3
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 5
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,4,0,3
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 6
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,0,0,-3
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 7
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,4,0,3
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 8
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,0,0,-3
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 9
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,4,0,3
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 10
+MoveRelLastGlobal 1,-.4,0,0
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,0,0,-3
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 11
+MoveRelLastGlobal 1,4,0,3
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+/ doing half step # 12
+MoveRelLastGlobal 1,0,0,-3
+MoveRelLastGlobal 2,-.4,0,0
+MoveRelLastGlobal 3,-.4,0,0
+MoveRelLastGlobal 4,-.4,0,0
+MoveRelLastGlobal 5,-.4,0,0
+MoveRelLastGlobal 6,-.4,0,0
+doit $w
+
+cycleend 9
+
+executecycle 9,2

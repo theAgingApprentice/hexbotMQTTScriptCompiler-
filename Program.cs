@@ -831,6 +831,7 @@ namespace HexbotCompiler
          var arg = parse[1].Split(',', 4);
          var leg = arg[0].Trim();
          string legName = leg.ToUpper(); 
+         //WC( $" a1,2,3: {arg[1]}, {arg[2]}, {arg[3].Trim()}");
          x = Convert.ToDouble(arg[1].Trim());
          y = Convert.ToDouble(arg[2].Trim());
          z = Convert.ToDouble(arg[3].Trim()); 
