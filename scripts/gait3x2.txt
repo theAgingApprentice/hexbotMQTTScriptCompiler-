@@ -1,0 +1,322 @@
+/ This is the compiler source file 
+/
+/ compiler script to walk with a 3 phase gait, raising 2 legs in each phase
+/ NOTE: this gait starts and ends in the modified neutral stance
+/
+/ in each phase, 2 legs lift and go forward, and the other 4 push backwards
+/   in phase 1, legs 1 and 5 are lifted and lowered (leg group S)
+/   in phase 2, legs 2 and 6 are lifted and lowered (leg group T)
+/   in phase 3, legs 3 and 4 are lifted and lowered (leg group U)
+/
+/            FRONT
+/                                   ^
+/        4 *      * 1              /|\
+/                                   | Global +X direction
+/      5 *          * 2             |
+/
+/        6 *      * 3        <------ Global +Y direction
+/
+/ because the liftphase  has 2 parts (up and down) we define 2 sub phases for each phase,
+/  so everything matches up, since the legs are doing different phases simultaneously.
+/
+/ if D is the distance covered by the complete step, the motion is:
+/  - a total advance of distance D for the lift/lower phase  (symbol $D)
+/  - a backwards push of D/4 for each of the push sub-phases (symbol $E)
+/ Note that these movements sum to zero for each leg, so the robot returns to neutral stance at end of step
+/
+/      _______Sub-Phases__________
+/ Leg  1A   1B   2A   2B   3A   3B
+/-----------------------------------
+/  1   up   down push push push push
+/  2   push push up   down push push
+/  3   push push push push up   down
+/  4   push push push push up   down
+/  5   up   down push push push push
+/  6   push push up   down push push
+
+/ define leg groups for the pairs of legs that move in the same pattern at the same time
+leggroup S,1,5
+leggroup T,2,6
+leggroup U,3,4
+
+/set up in modified home position, with legs pulled "inwards" 2 cm
+/ pull leg group S (= legs 1 and 5) inward 2 cm
+MoveRelLastLocal S,-2,3,0
+Doit $P
+MoveRelLastLocal S,0,-3,0
+Doit $P
+
+/same for leg group T
+MoveRelLastLocal T,-2,3,0
+Doit $P
+MoveRelLastLocal T,0,-3,0
+Doit $P
+
+/same for leg group U
+MoveRelLastLocal U,-2,3,0
+Doit $P
+MoveRelLastLocal U,0,-3,0
+Doit $P
+
+/ experimental stepping - to be commented once it's stable
+/
+/ need to add stuff for macro definitions to compiler: BOM, SM...EOM
+/
+/ symbol D is the step length in cm, probably around 2
+/ symbol E is the step length / 4 for use in the push phase
+/ Note the use of relative leg moves that are based on previous position of leg
+/
+/ =========== step FORWARD ===========================================================================
+/
+/ mark this as the beginning of a repeatable cycle named "9"
+CycleStart 6
+/
+/ -------- phase F-1A --------
+/ move leg group S (L1, L5) ahead $D cm, and up 3 cm
+MoveRelLastglobal S,$D,0,3
+/ push back $E cm for leg group T (L2,L6)
+MoveRelLastglobal T,-$E,0,0
+/ push back $E cm for leg group U (L3, L4)
+MoveRelLastglobal U,-$E,0,0
+DoIt $W
+
+/ -------- phase F-1B--------
+/ move leg group S (L1, L5) back down in new advanced position
+MoveRelLastglobal S,0,0,-3
+/ push back $E cm again for leg group T (L2,L6)
+MoveRelLastglobal T,-$E,0,0
+/ push back $E cm again for leg group U (L3, L4)
+MoveRelLastglobal U,-$E,0,0
+DoIt $W
+/
+/ -------- phase F-2A --------
+/ move leg group T ahead $D cm, and up 3 cm
+MoveRelLastglobal T,$D,0,3
+/ push back $E cm for leg group S
+MoveRelLastglobal S,-$E,0,0
+/ push back $E cm for leg group U
+MoveRelLastglobal U,-$E,0,0
+DoIt $W
+
+/ -------- phase F-2B--------
+/ move leg group T (L1, L5) back down in new advanced position
+MoveRelLastglobal T,0,0,-3
+/ push back $E cm again for leg group S
+MoveRelLastglobal S,-$E,0,0
+/ push back $E cm again for leg group U
+MoveRelLastglobal U,-$E,0,0
+DoIt $W
+/
+/ -------- phase F-3A --------
+/ move leg group U ahead $D cm, and up 3 cm
+MoveRelLastglobal U,$D,0,3
+/ push back $E cm for leg group S
+MoveRelLastglobal S,-$E,0,0
+/ push back $E cm for leg group T
+MoveRelLastglobal T,-$E,0,0
+DoIt $W
+
+/ -------- phase F-3B--------
+/ move leg group U (L1, L5) back down in new advanced position
+MoveRelLastglobal U,0,0,-3
+/ push back $E cm again for leg group S
+MoveRelLastglobal S,-$E,0,0
+/ push back $E cm again for leg group T
+MoveRelLastglobal T,-$E,0,0
+DoIt $W
+
+/ mark the end of the repeatable cycle named "9"
+CycleEnd 6
+
+/================ step to robot's RIGHT ================================================================
+/ much like stepping forward, but move along negative global Y axis
+/  instead of positive global X axis
+
+CycleStart 7
+
+/
+/ -------- phase R-1A --------
+/ move leg group S (L1, L5) right $D cm, and up 3 cm
+MoveRelLastglobal S,0,-$D,3
+/ push left $E cm for leg group T (L2,L6)
+MoveRelLastglobal T,0,$E,0
+/ push left $E cm for leg group U (L3, L4)
+MoveRelLastglobal U,0,$E,0
+DoIt $W
+
+/ -------- phase R-1B--------
+/ move leg group S (L1, L5) down in new advanced position
+MoveRelLastglobal S,0,0,-3
+/ push left $E cm again for leg group T (L2,L6)
+MoveRelLastglobal T,0,$E,0
+/ push left $E cm again for leg group U (L3, L4)
+MoveRelLastglobal U,0,$E,0
+DoIt $W
+/
+/ -------- phase R-2A --------
+/ move leg group T right $D cm, and up 3 cm
+MoveRelLastglobal T,0,-$D,3
+/ push left $E cm for leg group S
+MoveRelLastglobal S,0,$E,0
+/ push left $E cm for leg group U
+MoveRelLastglobal U,0,$E,0
+DoIt $W
+
+/ -------- phase R-2B--------
+/ move leg group T (L1, L5) down in new advanced position
+MoveRelLastglobal T,0,0,-3
+/ push left $E cm again for leg group S
+MoveRelLastglobal S,0,$E,0
+/ push left $E cm again for leg group U
+MoveRelLastglobal U,0,$E,0
+DoIt $W
+/
+/ -------- phase R-3A --------
+/ move leg group U right $D cm, and up 3 cm
+MoveRelLastglobal U,0,-$D,3
+/ push left $E cm for leg group S
+MoveRelLastglobal S,0,$E,0
+/ push left $E cm for leg group T
+MoveRelLastglobal T,0,$E,0
+DoIt $W
+
+/ -------- phase R-3B--------
+/ move leg group U (L1, L5) down in new advanced position
+MoveRelLastglobal U,0,0,-3
+/ push left $E cm again for leg group S
+MoveRelLastglobal S,0,$E,0
+/ push left $E cm again for leg group T
+MoveRelLastglobal T,0,$E,0
+DoIt $W
+
+CycleEnd 7
+
+/ =========== step BACKWARD ============================================================
+/
+/ mark this as the beginning of a repeatable cycle named "7"
+CycleStart 8
+/
+/ -------- phase B-1A --------
+/ move leg group S (L1, L5) back $D cm, and up 3 cm
+MoveRelLastglobal S,-$D,0,3
+/ push forward $E cm for leg group T (L2,L6)
+MoveRelLastglobal T,$E,0,0
+/ push forward $E cm for leg group U (L3, L4)
+MoveRelLastglobal U,$E,0,0
+DoIt $W
+
+/ -------- phase B-1B--------
+/ move leg group S (L1, L5) down in new advanced position
+MoveRelLastglobal S,0,0,-3
+/ push forward $E cm again for leg group T (L2,L6)
+MoveRelLastglobal T,$E,0,0
+/ push forward $E cm again for leg group U (L3, L4)
+MoveRelLastglobal U,$E,0,0
+DoIt $W
+/
+/ -------- phase B-2A --------
+/ move leg group T back $D cm, and up 3 cm
+MoveRelLastglobal T,-$D,0,3
+/ push forward $E cm for leg group S
+MoveRelLastglobal S,$E,0,0
+/ push forward $E cm for leg group U
+MoveRelLastglobal U,$E,0,0
+DoIt $W
+
+/ -------- phase B-2B--------
+/ move leg group T (L1, L5) down in new advanced position
+MoveRelLastglobal T,0,0,-3
+/ push forward $E cm again for leg group S
+MoveRelLastglobal S,$E,0,0
+/ push forward $E cm again for leg group U
+MoveRelLastglobal U,$E,0,0
+DoIt $W
+/
+/ -------- phase B-3A --------
+/ move leg group U back $D cm, and up 3 cm
+MoveRelLastglobal U,-$D,0,3
+/ push forward $E cm for leg group S
+MoveRelLastglobal S,$E,0,0
+/ push forward $E cm for leg group T
+MoveRelLastglobal T,$E,0,0
+DoIt $W
+
+/ -------- phase B-3B--------
+/ move leg group U (L1, L5) down in new advanced position
+MoveRelLastglobal U,0,0,-3
+/ push forward $E cm again for leg group S
+MoveRelLastglobal S,$E,0,0
+/ push forward $E cm again for leg group T
+MoveRelLastglobal T,$E,0,0
+DoIt $W
+
+/ mark the end of the repeatable cycle named "7"
+CycleEnd 8
+
+/================ step to robot's LEFT ======================================================
+/ much like stepping RIGHT, but move along positive global Y axis
+/  instead of negative global Y axis
+
+CycleStart 9
+/
+/ -------- phase L-1A --------
+/ move leg group S (L1, L5) left $D cm, and up 3 cm
+MoveRelLastglobal S,0,$D,3
+/ push right $E cm for leg group T (L2,L6)
+MoveRelLastglobal T,0,-$E,0
+/ push right $E cm for leg group U (L3, L4)
+MoveRelLastglobal U,0,-$E,0
+DoIt $W
+
+/ -------- phase L-1B--------
+/ move leg group S (L1, L5) down in new advanced position
+MoveRelLastglobal S,0,0,-3
+/ push right $E cm again for leg group T (L2,L6)
+MoveRelLastglobal T,0,-$E,0
+/ push right $E cm again for leg group U (L3, L4)
+MoveRelLastglobal U,0,-$E,0
+DoIt $W
+/
+/ -------- phase L-2A --------
+/ move leg group T left $D cm, and up 3 cm
+MoveRelLastglobal T,0,$D,3
+/ push right $E cm for leg group S
+MoveRelLastglobal S,0,-$E,0
+/ push right $E cm for leg group U
+MoveRelLastglobal U,0,-$E,0
+DoIt $W
+
+/ -------- phase L-2B--------
+/ move leg group T (L1, L5) down in new advanced position
+MoveRelLastglobal T,0,0,-3
+/ push right $E cm again for leg group S
+MoveRelLastglobal S,0,-$E,0
+/ push right $E cm again for leg group U
+MoveRelLastglobal U,0,-$E,0
+DoIt $W
+/
+/ -------- phase L-3A --------
+/ move leg group U left $D cm, and up 3 cm
+MoveRelLastglobal U,0,$D,3
+/ push right $E cm for leg group S
+MoveRelLastglobal S,0,-$E,0
+/ push right $E cm for leg group T
+MoveRelLastglobal T,0,-$E,0
+DoIt $W
+
+/ -------- phase L-3B--------
+/ move leg group U (L1, L5) down in new advanced position
+MoveRelLastglobal U,0,0,-3
+/ push right $E cm again for leg group S
+MoveRelLastglobal S,0,-$E,0
+/ push right $E cm again for leg group T
+MoveRelLastglobal T,0,-$E,0
+DoIt $W
+
+CycleEnd 9
+
+/ request that the cycles be executed 3 times, to make a big square
+ExecuteCycle 6,3
+ExecuteCycle 7,3
+ExecuteCycle 8,3
+ExecuteCycle 9,3
