@@ -114,19 +114,30 @@ MoveRelHomeLocal 1,5.99,+11,6
 MoveRelHomeLocal 4,5.99,+11,-6
 Doit 300
 
-/ try a sideways tile while sitting: raise leg 4, lower leg 3
+/ try a sideways tilt to left while sitting: raise leg 5, lower leg 3
+MoveRelLastGlobal 3,0,0,-3
+MoveRelLastGlobal 5,0,0,+3
+doit 1000
+MoveRelLastGlobal 3,0,0,+3
+MoveRelLastGlobal 5,0,0,-3
+doit 1000
+MoveRelLastGlobal 3,0,0,+3
+MoveRelLastGlobal 5,0,0,-3
+doit 1000
 MoveRelLastGlobal 3,0,0,-3
 MoveRelLastGlobal 5,0,0,+3
 doit 1000
 
-MoveRelLastGlobal 3,0,0,+3
-MoveRelLastGlobal 5,0,0,-3
+/ now do same tilt to right
+MoveRelLastGlobal 6,0,0,-3
+MoveRelLastGlobal 2,0,0,+3
 doit 1000
-
-MoveRelLastGlobal 3,0,0,+3
-MoveRelLastGlobal 5,0,0,-3
+MoveRelLastGlobal 6,0,0,+3
+MoveRelLastGlobal 2,0,0,-3
 doit 1000
-
-MoveRelLastGlobal 3,0,0,-3
-MoveRelLastGlobal 5,0,0,+3
+MoveRelLastGlobal 6,0,0,+3
+MoveRelLastGlobal 2,0,0,-3
+doit 1000
+MoveRelLastGlobal 6,0,0,-3
+MoveRelLastGlobal 2,0,0,+3
 doit 1000
