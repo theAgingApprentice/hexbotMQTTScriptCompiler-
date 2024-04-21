@@ -142,7 +142,7 @@ MoveRelLastglobal S,0,-$D,3
 MoveRelLastglobal T,0,$E,0
 / push left $E cm for leg group U (L3, L4)
 MoveRelLastglobal U,0,$E,0
-DoIt $W
+DoIt 201
 
 / -------- phase R-1B--------
 / move leg group S (L1, L5) down in new advanced position
@@ -151,7 +151,7 @@ MoveRelLastglobal S,0,0,-3
 MoveRelLastglobal T,0,$E,0
 / push left $E cm again for leg group U (L3, L4)
 MoveRelLastglobal U,0,$E,0
-DoIt $W
+DoIt 202
 /
 / -------- phase R-2A --------
 / move leg group T right $D cm, and up 3 cm
@@ -160,7 +160,7 @@ MoveRelLastglobal T,0,-$D,3
 MoveRelLastglobal S,0,$E,0
 / push left $E cm for leg group U
 MoveRelLastglobal U,0,$E,0
-DoIt $W
+DoIt 203
 
 / -------- phase R-2B--------
 / move leg group T (L1, L5) down in new advanced position
@@ -169,7 +169,7 @@ MoveRelLastglobal T,0,0,-3
 MoveRelLastglobal S,0,$E,0
 / push left $E cm again for leg group U
 MoveRelLastglobal U,0,$E,0
-DoIt $W
+DoIt 204
 /
 / -------- phase R-3A --------
 / move leg group U right $D cm, and up 3 cm
@@ -178,7 +178,7 @@ MoveRelLastglobal U,0,-$D,3
 MoveRelLastglobal S,0,$E,0
 / push left $E cm for leg group T
 MoveRelLastglobal T,0,$E,0
-DoIt $W
+DoIt 205
 
 / -------- phase R-3B--------
 / move leg group U (L1, L5) down in new advanced position
@@ -187,7 +187,7 @@ MoveRelLastglobal U,0,0,-3
 MoveRelLastglobal S,0,$E,0
 / push left $E cm again for leg group T
 MoveRelLastglobal T,0,$E,0
-DoIt $W
+DoIt 206
 
 CycleEnd 7
 
