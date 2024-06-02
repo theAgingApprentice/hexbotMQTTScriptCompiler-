@@ -2,6 +2,7 @@
 //using System.IO;
 
 
+using System.Net;
 using System.Net.WebSockets;
 using System.Security.AccessControl;
 using System.Threading.Tasks.Dataflow;
@@ -403,17 +404,17 @@ namespace HexbotCompiler
       /// <param name="null">Does not return any values.</param>
       /// <returns>null</returns>
       /// <exception cref="DataException">Thrown if the file name provided does not exist.</exception>
-      public void getSrcContent()      // we're in scriptFile class
+      public void getSrcContent(string fname)      // we're in scriptFile class
       {
          // some setup stuff for script processing, including symbol definitions from symbols.txt
          setupForScript();   // includes definition of physical dimensions
-
 
          Console.WriteLine(" ");       // display a blank line to separate dotnet command from compiler output
          // see if input file name was predefind in the $I symbol
          string inFile = symLookup("I");  // see if $I has a definition
          if(inFile != "")     // if there was a non null definition..
          {
+            inFile = inFile + fname +".txt";    // append the filename and extension
             Console.WriteLine($"  (using predefined script file name: {inFile})");
             if( !File.Exists(inFile))  // if the file named in $I doesn't actually exist
             {                          // tell user that, and fall back to asking him for filename
@@ -1264,9 +1265,9 @@ namespace HexbotCompiler
       /// <param name="null">Does not accept any arguments.</param>
       /// <returns>Steing array containing the translated script file</returns>
       /// <exception cref="NoException">Does not throw any exceptions.</exception>
-      public string[] getXfrmContent()      // we're in scriptFile class
+      public string[] getXfrmContent(string fname)      // we're in scriptFile class
       {
-         this.getSrcContent();
+         this.getSrcContent(fname);
          this.transformSrc();
          return outLines;
       } // getXfrmContent()      
@@ -1380,6 +1381,15 @@ namespace HexbotCompiler
       /// <returns>null</returns>
       static void Main(string[] args)
       {
+         // the script compiler is compiled and run by the terminal command:
+         //    dotnet run -- filename
+         // where filename does not contain .txt or .js or any path information
+         // where the source file is called filename.txt
+         // and the object file is called 01__filename.js
+         // the I and O symbols define the input file and object file paths respectively
+
+         string fname = args[0];
+         
          var script = new scriptFile(); // Object reference to script file.
          var template = new templateFile(); // Object reference to template file.
          var mqttx = new fxFile(); // Object reference to MQTTfx file. 
@@ -1391,10 +1401,12 @@ namespace HexbotCompiler
          // leave C Sharp complier warnings on screen
          //Console.Clear();
          string test = script.symLookup("H");
-         scriptArray = script.getXfrmContent(); // Get transformed script file content.
+         scriptArray = script.getXfrmContent(fname); // Get transformed script file content.
          templateArray = template.getXfrmContent(); // Get transformed template file content.
+         
          // get the string for the $O symbol, which is output filename, if it's defined, null otherwise
          string oFile = script.symLookup("O");
+         oFile = oFile + fname + ".js";
          mqttx.create(scriptArray, templateArray, oFile); // Create MQTTfx file
 
          scriptErrors = script.getErrors();     // retrieve the list of error messages for the script
