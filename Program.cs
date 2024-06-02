@@ -936,12 +936,48 @@ namespace HexbotCompiler
             var cmd = parse[0].Trim().ToUpper();  
 // ========================================================================================================= "symdef"
             if(cmd == "SYMDEF")
+            {  
+               string line1 = line.Substring(7);
+               line = line1;
+               if( line == "" | line.StartsWith("/") )
+               {
+                  // if line is a comment, or empty, or starts with a space, ignore it
+               }  // if( line != ""...
+               else  // otherwise it's a symbol definition
+               {
+                  if(line.Length < 2 | !line.Contains(' ')) // if the line is too short or ill formed...
+                  {
+                     // report an error
+                     newError(0,  "Error:", "In SYMDEF command: line too short or missing space separator");
+                     line = "- -";  // substitute so that parse[1] will exist nad not cause out of bounds errors
+                  }// if(line.Length < 2 | !line.Contains(' '))
+                  parse = line.Split(' ',2);    // chop it into 2 pieces by the space after the symbol name
+                  string sym = parse[0];
+                  if(sym.Length != 1 | !Char.IsLetter(sym,0))  // symbol name must be exactly 1 letter
+                  {
+                     //Symbol name isn't valid
+                     //newError( symLine,  "Error:", "In symbols.txt file: Symbol name at start of line is not a single letter");
+                     // for now, let things continue, with a strange symbol defined
+
+                  }
+                  if(parse[1].Length == 0)      // if there wasn't a substitution string, give a warning
+                  {
+                     // newError(symLine,"Warning:", "In symbols.txt file: substitution string was empty");
+                  }  //  if(parse[1].Length == 0)
+                  symNames[symCount] = parse[0].ToUpper();   // get the symbol, forced to upper case
+                  symStrings[symCount] = parse[1];           // and store away the string that the symbol represents
+                  symCount ++ ;        // count one more symbol
+               } // else // if( line != ""...
+            } // if cmd = SYMDEF
+
+// ===================================================================================================== "PASSTHRU"
+            else if(cmd == "PASSTHRU")   // copy remainder of source line directly into compiled object file
             {
-               newLine = "// " + line + " // symdef replaced by use of symbols.txt file.";
-               outLines[outIndex] = newLine;
-               outIndex++;
-               newError(lineNum,"Warning:", "symdef command is obsolete, replaced by symbols in the symbol.txt file");
-            } // if
+                  string line1 = line.Substring(9);   // strip off PASSTHRU<space> from start of line
+                  outLines[outIndex] = line1;         // and put the remainder right into the object file
+                  outIndex++;
+            }
+
 // ===================================================================================================== "MoveToHomePosition"
             else if(cmd == "MoveToHomePosition".ToUpper())
             {

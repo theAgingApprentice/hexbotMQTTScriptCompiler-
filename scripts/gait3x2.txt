@@ -34,6 +34,9 @@
 /  5   up   down push push push push
 /  6   push push up   down push push
 
+SYMDEF Y some text
+PASSTHRU // this comment should end up in the MQTT js file
+
 / define leg groups for the pairs of legs that move in the same pattern at the same time
 leggroup S,1,5
 leggroup T,2,6
@@ -69,7 +72,9 @@ Doit $P
 / =========== step FORWARD ===========================================================================
 /
 / mark this as the beginning of a repeatable cycle named "9"
-CycleStart 6
+//CycleStart 6
+PASSTHRU send("flow,0,BOM")
+PASSTHRU // Bot BOM command should reset macro accumulation pointer, rather than have dummy macro
 /
 / -------- phase F-1A --------
 / move leg group S (L1, L5) ahead $D cm, and up 3 cm
@@ -126,7 +131,9 @@ MoveRelLastglobal T,-$E,0,0
 DoIt $W
 
 / mark the end of the repeatable cycle named "9"
-CycleEnd 6
+//CycleEnd 6
+PASSTHRU send("flow,0,SM,F")
+PASSTHRU send("flow,0,EOM")
 
 /================ step to robot's RIGHT ================================================================
 / much like stepping forward, but move along negative global Y axis
@@ -316,7 +323,9 @@ DoIt $W
 CycleEnd 9
 
 / request that the cycles be executed 3 times, to make a big square
-ExecuteCycle 6,3
+//ExecuteCycle 6,3
+PASSTHRU // here comes 3 executions of macro F, which takes a step forward
+PASSTHRU send("flow,0,DM,F,3")
 ExecuteCycle 7,3
 ExecuteCycle 8,3
 ExecuteCycle 9,3
