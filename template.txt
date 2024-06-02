@@ -6,7 +6,7 @@ copy function execute() {
 copy mybot = "$H/commands"
 copy send("NEW_FLOW")
 insert <templateFile>
-copy send("DO_FLOW,1,25")
+copy send("DO_FLOW,33,25")
 copy action.setExitCode(0);
 copy action.setResultText("done.");
 copy out("Parameter parameter set up complete");
@@ -15,7 +15,7 @@ copy }
 copy function send(cmd){
 copy out(cmd);      // display command in MQTT console as its downloaded to bot
 copy mqttManager.publish(mybot, cmd);
-copy Thread.sleep(200); 
+copy Thread.sleep(300); 
 copy }
 copy function out(message){
 copy output.print(message);
